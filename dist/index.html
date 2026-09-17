@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#6154e8" />
-    <meta name="description" content="Сборка — пространство учебной команды в MAX" />
-    <title>Сборка — проектная команда</title>
+    <meta name="description" content="Контекст — рабочее пространство внутри MAX" />
+    <title>Контекст — пространство в MAX</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='17' fill='%236154e8'/%3E%3Cpath d='M18 20h28v7H25v10h17v7H25v10h21v7H18z' fill='white'/%3E%3C/svg%3E" />
     <style>
       :root { --ink:#1d1c2b; --muted:#77758a; --line:#e9e8f0; --paper:#ffffff; --wash:#f6f6fb; --violet:#6154e8; --violet-dark:#4f43cd; --aqua:#dcf8f4; --pink:#ffe7ef; --yellow:#fff5cb; --shadow:0 18px 45px rgba(37,31,99,.09); }
@@ -99,7 +99,7 @@
   <body>
     <div class="app">
       <nav class="rail" aria-label="Основная навигация">
-        <div class="mark">С</div>
+        <div class="mark">К</div>
         <button class="active" aria-label="Проекты">▦</button>
         <button aria-label="Мои задачи">✓</button>
         <button aria-label="Уведомления">♧</button>
@@ -108,39 +108,40 @@
         <div class="profile" title="Алина К.">АК</div>
       </nav>
       <aside class="sidebar">
-        <div class="workspace"><span class="dot"></span><span>Команда «Листок»</span></div>
-        <div class="team"><small>Пространство</small><strong>Учебные проекты</strong></div>
-        <div class="section-title"><span>Проекты</span><button class="add-mini" aria-label="Новый проект">+</button></div>
-        <button class="project selected"><span class="project-icon plum">✦</span><span>Курсовая: городские сервисы</span></button>
-        <button class="project"><span class="project-icon blue">▣</span><span>Медиалаборатория</span></button>
-        <button class="project"><span class="project-icon orange">◒</span><span>Хакатон MAX</span></button>
+        <div class="workspace"><span class="dot"></span><span>Контекст</span></div>
+        <div class="team"><small>MINI APP · MAX</small><strong>Личное пространство</strong></div>
+        <div class="section-title"><span>Страницы</span><button class="add-mini" aria-label="Новая страница">+</button></div>
+        <button class="project selected"><span class="project-icon plum">✦</span><span>План запуска</span></button>
+        <button class="project"><span class="project-icon blue">▣</span><span>База идей</span></button>
+        <button class="project"><span class="project-icon orange">◒</span><span>Поездка в Казань</span></button>
         <div class="section-title"><span>Рабочее</span></div>
         <div class="nav-link">▤ <span>Все заметки</span></div>
+        <div class="nav-link">▦ <span>Базы</span></div>
         <div class="nav-link">◷ <span>Недавнее</span></div>
         <div class="nav-link">♙ <span>Участники</span></div>
       </aside>
       <main>
         <header class="topbar">
-          <div class="crumb"><span>Учебные проекты</span><span>›</span><b>Курсовая: городские сервисы</b></div>
+          <div class="crumb"><span>Личное</span><span>›</span><b>План запуска</b></div>
           <div class="top-actions"><button class="icon-btn" aria-label="Уведомления">♧</button><button class="share" id="shareBtn">↗ Поделиться</button></div>
         </header>
         <div class="content">
           <section class="project-head">
-            <div><h1>Курсовая: городские сервисы</h1><p class="sub">Работа команды над сервисом, который помогает студентам решать повседневные задачи в кампусе.</p></div>
+            <div><h1>План запуска</h1><p class="sub">Страницы, задачи и решения одной команды — без потери контекста в переписках.</p></div>
             <div class="avatars" aria-label="Участники проекта"><div class="avatar a1">МК</div><div class="avatar a2">ИЛ</div><div class="avatar a3">ВТ</div><div class="avatar a4">+2</div></div>
           </section>
           <div class="tabs" role="tablist"><button class="tab active" data-view="overview">Обзор</button><button class="tab" data-view="notes">Заметки</button><button class="tab" data-view="board">Доска задач</button></div>
           <section id="overview" class="view overview">
-            <article class="card"><div class="card-header"><h2 class="card-title">О проекте</h2><button data-view="notes">Открыть заметки →</button></div><div class="brief"><p>Мы исследуем, как студенты находят поддержку, информацию и единомышленников внутри университета. Цель — собрать понятный сервис для ежедневных микро‑задач.</p><div class="callout"><b>✦</b><span><b>Следующий созвон</b><br>Четверг, 18:30 · обсудим прототип и интервью.</span></div></div></article>
-            <article class="card"><div class="card-header"><h2 class="card-title">Ближайшее</h2><button data-view="board">Все задачи →</button></div><div class="deadline"><div class="deadline-list"><div class="deadline-item"><div class="date">СЕН<b>18</b></div><div><strong>Собрать 5 интервью</strong><small>Марина · исследование</small></div></div><div class="deadline-item"><div class="date">СЕН<b>20</b></div><div><strong>Прототип главного экрана</strong><small>Илья · дизайн</small></div></div><div class="deadline-item"><div class="date">СЕН<b>22</b></div><div><strong>Черновик презентации</strong><small>Вся команда</small></div></div></div></div><div class="progress-wrap"><div class="progress-label"><span>Готовность спринта</span><span>64%</span></div><div class="progress"><i></i></div></div></article>
-            <article class="card board-preview"><div class="card-header"><h2 class="card-title">Доска задач</h2><button data-view="board">Открыть доску →</button></div><div class="board-grid"><div class="lane"><div class="lane-top"><span>Нужно сделать</span><span class="count">2</span></div><button class="task">Собрать боли студентов<span class="tag">исследование</span></button><button class="task">Выбрать формат MVP<span class="tag purple">решение</span></button></div><div class="lane"><div class="lane-top"><span>В работе</span><span class="count">2</span></div><button class="task">Интервью с первокурсниками<span class="tag green">Марина</span></button><button class="task">Сетка экранов<span class="tag purple">Илья</span></button></div><div class="lane"><div class="lane-top"><span>Готово</span><span class="count">3</span></div><button class="task">Разделили роли<span class="tag green">команда</span></button><button class="task">Сформулировали гипотезу<span class="tag green">готово</span></button></div></div></article>
+            <article class="card"><div class="card-header"><h2 class="card-title">Что здесь</h2><button data-view="notes">Открыть страницу →</button></div><div class="brief"><p>Контекст собирает то, что обычно распадается на чаты: заметки, базы, задачи и договорённости. Вся команда видит одну актуальную страницу.</p><div class="callout"><b>MAX</b><span><b>Открыто из @context_bot</b><br>Бот напомнит о дедлайне и вернёт прямо на нужную страницу.</span></div></div></article>
+            <article class="card"><div class="card-header"><h2 class="card-title">Ближайшее</h2><button data-view="board">Все задачи →</button></div><div class="deadline"><div class="deadline-list"><div class="deadline-item"><div class="date">СЕН<b>18</b></div><div><strong>Согласовать позиционирование</strong><small>Марина · команда</small></div></div><div class="deadline-item"><div class="date">СЕН<b>20</b></div><div><strong>Собрать первый сценарий</strong><small>Илья · продукт</small></div></div><div class="deadline-item"><div class="date">СЕН<b>22</b></div><div><strong>Провести общий созвон</strong><small>Вся команда</small></div></div></div></div><div class="progress-wrap"><div class="progress-label"><span>Готовность недели</span><span>64%</span></div><div class="progress"><i></i></div></div></article>
+            <article class="card board-preview"><div class="card-header"><h2 class="card-title">Доска задач</h2><button data-view="board">Открыть доску →</button></div><div class="board-grid"><div class="lane"><div class="lane-top"><span>Нужно сделать</span><span class="count">2</span></div><button class="task">Собрать вопросы к запуску<span class="tag">команда</span></button><button class="task">Выбрать формат MVP<span class="tag purple">решение</span></button></div><div class="lane"><div class="lane-top"><span>В работе</span><span class="count">2</span></div><button class="task">Проверка сценария<span class="tag green">Марина</span></button><button class="task">Сетка экранов<span class="tag purple">Илья</span></button></div><div class="lane"><div class="lane-top"><span>Готово</span><span class="count">3</span></div><button class="task">Собрали базу идей<span class="tag green">команда</span></button><button class="task">Определили цель<span class="tag green">готово</span></button></div></div></article>
           </section>
-          <section id="notes" class="view notes-view"><div class="notes-grid"><article class="card note"><h2>Гипотеза проекта</h2><p>Студенты часто решают похожие задачи в десятках разрозненных чатов: ищут напарника, спрашивают про дедлайн, договариваются о встрече. Нужен единый спокойный контекст — без потери важного в ленте сообщений.</p><p>В первой версии проверяем: будут ли команды открывать пространство проекта из группового чата, чтобы видеть общую цель и следующий шаг.</p><div class="checklist"><label class="check"><input type="checkbox" checked> Провести интервью</label><label class="check"><input type="checkbox" checked> Сформулировать сценарий</label><label class="check"><input type="checkbox"> Собрать кликабельный прототип</label><label class="check"><input type="checkbox"> Подготовить питч</label></div></article><aside class="card outline"><h3>На странице</h3><button>Гипотеза проекта</button><button>Что узнали на интервью</button><button>Сценарий в MAX</button><button>Риски и вопросы</button></aside></div></section>
-          <section id="board" class="view board-view"><div class="board-full"><div class="full-lane" data-lane="Нужно сделать"><div class="lane-top"><span>Нужно сделать</span><span class="count">2</span></div><button class="task">Собрать боли студентов<span class="tag">исследование</span></button><button class="task">Выбрать формат MVP<span class="tag purple">решение</span></button><button class="new-task">+ Добавить задачу</button></div><div class="full-lane" data-lane="В работе"><div class="lane-top"><span>В работе</span><span class="count">2</span></div><button class="task">Интервью с первокурсниками<span class="tag green">Марина</span></button><button class="task">Сетка экранов<span class="tag purple">Илья</span></button><button class="new-task">+ Добавить задачу</button></div><div class="full-lane" data-lane="Готово"><div class="lane-top"><span>Готово</span><span class="count">3</span></div><button class="task">Разделили роли<span class="tag green">команда</span></button><button class="task">Сформулировали гипотезу<span class="tag green">готово</span></button><button class="new-task">+ Добавить задачу</button></div></div></section>
+          <section id="notes" class="view notes-view"><div class="notes-grid"><article class="card note"><h2>Как работает Контекст</h2><p>Это универсальное рабочее пространство внутри MAX. В нём можно создать страницу с текстом и чек‑листом, завести базу идей или вести доску задач — как в Notion, но без выхода из привычного мессенджера.</p><p>Бот становится входной точкой: из общего чата открывает страницу команды, присылает напоминание и делится готовой заметкой обратно в чат.</p><div class="checklist"><label class="check"><input type="checkbox" checked> Страницы и заметки</label><label class="check"><input type="checkbox" checked> Задачи и статусы</label><label class="check"><input type="checkbox"> Общая база идей</label><label class="check"><input type="checkbox"> Отправить итог в чат MAX</label></div></article><aside class="card outline"><h3>На странице</h3><button>Как работает Контекст</button><button>Сценарий в MAX</button><button>База идей</button><button>Команда и доступ</button></aside></div></section>
+          <section id="board" class="view board-view"><div class="board-full"><div class="full-lane" data-lane="Нужно сделать"><div class="lane-top"><span>Нужно сделать</span><span class="count">2</span></div><button class="task">Собрать вопросы к запуску<span class="tag">команда</span></button><button class="task">Выбрать формат MVP<span class="tag purple">решение</span></button><button class="new-task">+ Добавить задачу</button></div><div class="full-lane" data-lane="В работе"><div class="lane-top"><span>В работе</span><span class="count">2</span></div><button class="task">Проверка сценария<span class="tag green">Марина</span></button><button class="task">Сетка экранов<span class="tag purple">Илья</span></button><button class="new-task">+ Добавить задачу</button></div><div class="full-lane" data-lane="Готово"><div class="lane-top"><span>Готово</span><span class="count">3</span></div><button class="task">Собрали базу идей<span class="tag green">команда</span></button><button class="task">Определили цель<span class="tag green">готово</span></button><button class="new-task">+ Добавить задачу</button></div></div></section>
         </div>
       </main>
     </div>
-    <dialog id="taskDialog"><form class="modal" id="taskForm"><h2>Новая задача</h2><p>Добавим её в доску проекта.</p><label for="taskName">Что нужно сделать?</label><input id="taskName" required maxlength="72" placeholder="Например, подготовить сценарий демо" /><label for="taskLane">Колонка</label><select id="taskLane"><option>Нужно сделать</option><option>В работе</option><option>Готово</option></select><div class="modal-actions"><button type="button" id="cancelTask">Отмена</button><button class="primary" type="submit">Добавить</button></div></form></dialog>
+    <dialog id="taskDialog"><form class="modal" id="taskForm"><h2>Новая задача</h2><p>Добавим её в общую доску.</p><label for="taskName">Что нужно сделать?</label><input id="taskName" required maxlength="72" placeholder="Например, подготовить сценарий демо" /><label for="taskLane">Колонка</label><select id="taskLane"><option>Нужно сделать</option><option>В работе</option><option>Готово</option></select><div class="modal-actions"><button type="button" id="cancelTask">Отмена</button><button class="primary" type="submit">Добавить</button></div></form></dialog>
     <div class="toast" id="toast"><span>✓</span><span id="toastText">Готово</span></div>
     <script>
       const tabs = document.querySelectorAll('.tab');
@@ -150,7 +151,7 @@
       showView('overview');
       const toast = document.getElementById('toast'), toastText = document.getElementById('toastText');
       let toastTimer; function notify(text) { toastText.textContent = text; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 2600); }
-      document.getElementById('shareBtn').addEventListener('click', () => notify('Ссылка на проект скопирована. В MAX её увидит вся команда.'));
+      document.getElementById('shareBtn').addEventListener('click', () => notify('Страница отправлена в чат MAX. Команда увидит актуальную версию.'));
       const dialog = document.getElementById('taskDialog'); let activeLane;
       document.querySelectorAll('.new-task').forEach(button => button.addEventListener('click', () => { activeLane = button.closest('.full-lane'); document.getElementById('taskLane').value = activeLane.dataset.lane; dialog.showModal(); document.getElementById('taskName').focus(); }));
       document.getElementById('cancelTask').addEventListener('click', () => dialog.close());
