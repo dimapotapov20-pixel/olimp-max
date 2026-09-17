@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#6154e8" />
+    <meta name="description" content="Сборка — пространство учебной команды в MAX" />
+    <title>Сборка — проектная команда</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='17' fill='%236154e8'/%3E%3Cpath d='M18 20h28v7H25v10h17v7H25v10h21v7H18z' fill='white'/%3E%3C/svg%3E" />
+    <style>
+      :root { --ink:#1d1c2b; --muted:#77758a; --line:#e9e8f0; --paper:#ffffff; --wash:#f6f6fb; --violet:#6154e8; --violet-dark:#4f43cd; --aqua:#dcf8f4; --pink:#ffe7ef; --yellow:#fff5cb; --shadow:0 18px 45px rgba(37,31,99,.09); }
+      * { box-sizing:border-box; }
+      body { margin:0; min-width:320px; color:var(--ink); background:var(--wash); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:16px; }
+      button, input, textarea { font:inherit; }
+      button { cursor:pointer; }
+      .app { min-height:100vh; display:grid; grid-template-columns:82px 280px minmax(0,1fr); }
+      .rail { display:flex; flex-direction:column; align-items:center; gap:18px; padding:22px 0; border-right:1px solid var(--line); background:#f0effa; }
+      .mark { width:43px; height:43px; display:grid; place-items:center; color:#fff; background:var(--violet); border-radius:15px; font-size:28px; font-weight:900; box-shadow:0 7px 18px rgba(97,84,232,.3); }
+      .rail button { width:43px; height:43px; border:0; border-radius:14px; background:transparent; color:#77758a; font-size:20px; }
+      .rail button.active, .rail button:hover { color:var(--violet); background:#fff; box-shadow:0 3px 10px rgba(37,31,99,.07); }
+      .rail .spacer { flex:1; }
+      .profile { width:37px; height:37px; display:grid; place-items:center; background:#19263d; color:#fff; border-radius:50%; font-size:13px; font-weight:750; }
+      .sidebar { padding:25px 18px; border-right:1px solid var(--line); background:#fbfbfe; }
+      .workspace { display:flex; align-items:center; gap:10px; padding:4px 8px 24px; font-weight:750; }
+      .workspace .dot { width:11px; height:11px; border-radius:50%; background:#ff668f; box-shadow:15px 0 #7edff0; }
+      .team { margin:0 0 25px; padding:14px; border:1px solid #e1dffa; border-radius:15px; background:#f2f0ff; }
+      .team small { display:block; margin-bottom:4px; color:#6e68a6; font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+      .team strong { display:block; font-size:15px; }
+      .section-title { display:flex; align-items:center; justify-content:space-between; margin:22px 8px 9px; color:#8a8898; font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+      .add-mini { width:22px; height:22px; border:0; background:none; color:#7c798f; font-size:19px; }
+      .project { display:flex; align-items:center; gap:10px; width:100%; margin:4px 0; padding:10px 9px; border:0; border-radius:10px; color:#484658; background:transparent; text-align:left; }
+      .project:hover, .project.selected { color:#3427aa; background:#ebeaff; }
+      .project-icon { width:25px; height:25px; display:grid; place-items:center; flex:0 0 auto; border-radius:8px; font-size:14px; }
+      .plum { background:#e9e5ff; } .blue { background:#dff4ff; } .orange { background:#fff0d8; }
+      .project span:last-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:650; }
+      .nav-link { display:flex; gap:10px; align-items:center; padding:9px; border-radius:9px; color:#696778; font-size:14px; }
+      .nav-link:hover { background:#f0eff5; color:var(--ink); }
+      main { min-width:0; }
+      .topbar { height:74px; display:flex; align-items:center; justify-content:space-between; padding:0 34px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.75); }
+      .crumb { display:flex; align-items:center; gap:10px; min-width:0; }
+      .crumb span { color:#928fa0; font-size:14px; } .crumb b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .top-actions { display:flex; align-items:center; gap:10px; }
+      .icon-btn { width:38px; height:38px; display:grid; place-items:center; border:1px solid var(--line); border-radius:11px; color:#625f72; background:#fff; }
+      .share { display:flex; gap:7px; align-items:center; height:38px; padding:0 13px; border:0; border-radius:11px; color:#fff; background:var(--violet); font-weight:750; }
+      .share:hover { background:var(--violet-dark); }
+      .content { max-width:1380px; margin:auto; padding:36px 34px 50px; }
+      .project-head { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; }
+      h1 { margin:0 0 7px; font-size:clamp(1.8rem,3vw,2.5rem); line-height:1.1; letter-spacing:-.045em; }
+      .sub { max-width:660px; margin:0; color:var(--muted); line-height:1.55; }
+      .avatars { display:flex; align-items:center; padding:5px 0; }
+      .avatar { width:32px; height:32px; display:grid; place-items:center; margin-left:-7px; border:2px solid var(--wash); border-radius:50%; color:white; font-size:11px; font-weight:800; }
+      .avatar:first-child { margin-left:0; } .a1 { background:#fd747d; } .a2 { background:#3c83e2; } .a3 { background:#e5a13a; } .a4 { background:#6756e9; }
+      .tabs { display:flex; gap:22px; margin:34px 0 25px; border-bottom:1px solid var(--line); }
+      .tab { position:relative; padding:0 2px 13px; border:0; color:#77758a; background:transparent; font-size:14px; font-weight:750; }
+      .tab.active { color:var(--violet); }
+      .tab.active:after { position:absolute; right:0; bottom:-1px; left:0; height:3px; border-radius:4px 4px 0 0; background:var(--violet); content:""; }
+      .overview { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(280px,.8fr); gap:22px; }
+      .card { border:1px solid var(--line); border-radius:18px; background:var(--paper); box-shadow:0 5px 22px rgba(40,37,80,.025); }
+      .card-header { display:flex; align-items:center; justify-content:space-between; padding:20px 21px 15px; }
+      .card-title { margin:0; font-size:16px; letter-spacing:-.015em; }
+      .card-header button { border:0; color:var(--violet); background:transparent; font-size:13px; font-weight:800; }
+      .brief { padding:4px 21px 21px; }
+      .brief p { margin:0 0 17px; color:#4d4a5e; line-height:1.6; }
+      .callout { display:flex; gap:11px; align-items:flex-start; padding:14px; border-radius:12px; color:#36324c; background:var(--aqua); font-size:14px; line-height:1.45; }
+      .callout b { color:#138779; }
+      .board-preview { grid-column:1 / -1; padding:0 0 19px; }
+      .board-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; padding:0 20px; }
+      .lane { min-height:182px; padding:11px; border-radius:14px; background:#f6f6fa; }
+      .lane-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; color:#5f5d70; font-size:12px; font-weight:800; }
+      .count { display:grid; place-items:center; width:21px; height:21px; border-radius:50%; color:#827f91; background:#e9e8f0; font-size:11px; }
+      .task { display:block; width:100%; margin:8px 0; padding:12px; border:1px solid #ebeaf0; border-radius:11px; color:#363443; background:#fff; box-shadow:0 2px 4px rgba(33,30,65,.025); text-align:left; font-size:13px; font-weight:650; line-height:1.35; }
+      .task:hover { transform:translateY(-1px); box-shadow:0 6px 15px rgba(33,30,65,.08); }
+      .tag { display:inline-block; margin-top:8px; padding:3px 7px; border-radius:6px; color:#836324; background:#fff1ce; font-size:10px; font-weight:850; }
+      .tag.purple { color:#5e4abb; background:#eeeaff; } .tag.green { color:#267a66; background:#ddf7f0; }
+      .deadline { padding:0 21px 21px; }
+      .deadline-list { display:grid; gap:3px; }
+      .deadline-item { display:grid; grid-template-columns:40px 1fr; gap:10px; padding:11px 0; border-bottom:1px solid #f0eff4; }
+      .deadline-item:last-child { border-bottom:0; }
+      .date { display:grid; align-content:center; text-align:center; border-radius:9px; color:#da3f65; background:var(--pink); font-size:11px; font-weight:850; line-height:1.1; }
+      .date b { font-size:16px; }
+      .deadline-item strong { display:block; margin:2px 0 3px; font-size:13px; }
+      .deadline-item small { color:#8b8899; font-size:12px; }
+      .progress-wrap { padding:0 21px 20px; }
+      .progress-label { display:flex; justify-content:space-between; margin-bottom:9px; color:#686577; font-size:13px; font-weight:750; }
+      .progress { overflow:hidden; height:8px; border-radius:10px; background:#eeedf4; } .progress i { display:block; width:64%; height:100%; border-radius:inherit; background:linear-gradient(90deg,#7565f2,#4fd6d0); }
+      .notes-view, .board-view { display:none; }
+      .notes-grid { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(250px,.55fr); gap:22px; }
+      .note { padding:26px; min-height:460px; } .note h2 { margin:0 0 18px; font-size:23px; letter-spacing:-.03em; } .note p { color:#4c4a5b; line-height:1.65; }
+      .checklist { display:grid; gap:11px; margin-top:22px; } .check { display:flex; align-items:center; gap:10px; color:#494757; } .check input { width:18px; height:18px; accent-color:var(--violet); }
+      .outline { padding:21px; } .outline h3 { margin:0 0 13px; font-size:14px; } .outline button { display:block; width:100%; padding:10px 8px; border:0; border-radius:8px; color:#666375; background:transparent; text-align:left; } .outline button:first-of-type { color:#5648cd; background:#f0eeff; }
+      .board-full { display:grid; grid-template-columns:repeat(3,minmax(240px,1fr)); gap:16px; overflow:auto; padding-bottom:10px; } .full-lane { min-height:430px; padding:14px; border-radius:16px; background:#f1f0f7; } .full-lane .task { padding:14px; font-size:14px; } .new-task { width:100%; margin-top:8px; padding:9px; border:1px dashed #c8c5d8; border-radius:9px; color:#777388; background:transparent; font-size:13px; }
+      .hidden { display:none !important; }
+      .toast { position:fixed; right:24px; bottom:24px; z-index:9; display:flex; gap:10px; align-items:center; max-width:360px; padding:13px 16px; border:1px solid #d5f0e8; border-radius:13px; color:#236755; background:#f2fffb; box-shadow:var(--shadow); transform:translateY(120px); opacity:0; transition:.28s ease; font-size:14px; font-weight:650; } .toast.show { transform:translateY(0); opacity:1; }
+      dialog { width:min(440px,calc(100% - 32px)); padding:0; border:0; border-radius:20px; box-shadow:0 24px 80px rgba(23,19,55,.25); } dialog::backdrop { background:rgba(25,23,44,.35); backdrop-filter:blur(3px); } .modal { padding:25px; } .modal h2 { margin:0 0 6px; font-size:22px; } .modal p { margin:0 0 19px; color:#77758a; font-size:14px; } .modal label { display:block; margin:13px 0 6px; color:#5d5a6a; font-size:13px; font-weight:750; } .modal input, .modal select { width:100%; padding:11px 12px; border:1px solid #dedde7; border-radius:10px; outline-color:var(--violet); background:#fff; } .modal-actions { display:flex; justify-content:flex-end; gap:9px; margin-top:22px; } .modal-actions button { padding:10px 14px; border:1px solid #dedde7; border-radius:10px; background:#fff; font-weight:750; } .modal-actions .primary { border-color:var(--violet); color:#fff; background:var(--violet); }
+      @media (max-width:920px) { .app { grid-template-columns:70px minmax(0,1fr); } .sidebar { display:none; } .overview { grid-template-columns:1fr; } .board-preview { grid-column:auto; } .project-head { flex-direction:column; } }
+      @media (max-width:600px) { .app { display:block; } .rail { position:fixed; z-index:5; right:0; bottom:0; left:0; height:62px; flex-direction:row; justify-content:space-around; padding:8px 12px; border-top:1px solid var(--line); border-right:0; } .rail .mark,.rail .spacer,.rail button:nth-of-type(3),.rail button:nth-of-type(4),.rail .profile { display:none; } main { padding-bottom:65px; } .topbar { height:62px; padding:0 17px; } .top-actions .icon-btn { display:none; } .share { padding:0 10px; font-size:13px; } .content { padding:25px 16px 30px; } .tabs { gap:16px; overflow:auto; } .board-grid { grid-template-columns:1fr; } .lane:nth-child(3) { display:none; } .notes-grid { grid-template-columns:1fr; } .outline { display:none; } .avatars { display:none; } }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <nav class="rail" aria-label="Основная навигация">
+        <div class="mark">С</div>
+        <button class="active" aria-label="Проекты">▦</button>
+        <button aria-label="Мои задачи">✓</button>
+        <button aria-label="Уведомления">♧</button>
+        <button aria-label="Поиск">⌕</button>
+        <div class="spacer"></div>
+        <div class="profile" title="Алина К.">АК</div>
+      </nav>
+      <aside class="sidebar">
+        <div class="workspace"><span class="dot"></span><span>Команда «Листок»</span></div>
+        <div class="team"><small>Пространство</small><strong>Учебные проекты</strong></div>
+        <div class="section-title"><span>Проекты</span><button class="add-mini" aria-label="Новый проект">+</button></div>
+        <button class="project selected"><span class="project-icon plum">✦</span><span>Курсовая: городские сервисы</span></button>
+        <button class="project"><span class="project-icon blue">▣</span><span>Медиалаборатория</span></button>
+        <button class="project"><span class="project-icon orange">◒</span><span>Хакатон MAX</span></button>
+        <div class="section-title"><span>Рабочее</span></div>
+        <div class="nav-link">▤ <span>Все заметки</span></div>
+        <div class="nav-link">◷ <span>Недавнее</span></div>
+        <div class="nav-link">♙ <span>Участники</span></div>
+      </aside>
+      <main>
+        <header class="topbar">
+          <div class="crumb"><span>Учебные проекты</span><span>›</span><b>Курсовая: городские сервисы</b></div>
+          <div class="top-actions"><button class="icon-btn" aria-label="Уведомления">♧</button><button class="share" id="shareBtn">↗ Поделиться</button></div>
+        </header>
+        <div class="content">
+          <section class="project-head">
+            <div><h1>Курсовая: городские сервисы</h1><p class="sub">Работа команды над сервисом, который помогает студентам решать повседневные задачи в кампусе.</p></div>
+            <div class="avatars" aria-label="Участники проекта"><div class="avatar a1">МК</div><div class="avatar a2">ИЛ</div><div class="avatar a3">ВТ</div><div class="avatar a4">+2</div></div>
+          </section>
+          <div class="tabs" role="tablist"><button class="tab active" data-view="overview">Обзор</button><button class="tab" data-view="notes">Заметки</button><button class="tab" data-view="board">Доска задач</button></div>
+          <section id="overview" class="view overview">
+            <article class="card"><div class="card-header"><h2 class="card-title">О проекте</h2><button data-view="notes">Открыть заметки →</button></div><div class="brief"><p>Мы исследуем, как студенты находят поддержку, информацию и единомышленников внутри университета. Цель — собрать понятный сервис для ежедневных микро‑задач.</p><div class="callout"><b>✦</b><span><b>Следующий созвон</b><br>Четверг, 18:30 · обсудим прототип и интервью.</span></div></div></article>
+            <article class="card"><div class="card-header"><h2 class="card-title">Ближайшее</h2><button data-view="board">Все задачи →</button></div><div class="deadline"><div class="deadline-list"><div class="deadline-item"><div class="date">СЕН<b>18</b></div><div><strong>Собрать 5 интервью</strong><small>Марина · исследование</small></div></div><div class="deadline-item"><div class="date">СЕН<b>20</b></div><div><strong>Прототип главного экрана</strong><small>Илья · дизайн</small></div></div><div class="deadline-item"><div class="date">СЕН<b>22</b></div><div><strong>Черновик презентации</strong><small>Вся команда</small></div></div></div></div><div class="progress-wrap"><div class="progress-label"><span>Готовность спринта</span><span>64%</span></div><div class="progress"><i></i></div></div></article>
+            <article class="card board-preview"><div class="card-header"><h2 class="card-title">Доска задач</h2><button data-view="board">Открыть доску →</button></div><div class="board-grid"><div class="lane"><div class="lane-top"><span>Нужно сделать</span><span class="count">2</span></div><button class="task">Собрать боли студентов<span class="tag">исследование</span></button><button class="task">Выбрать формат MVP<span class="tag purple">решение</span></button></div><div class="lane"><div class="lane-top"><span>В работе</span><span class="count">2</span></div><button class="task">Интервью с первокурсниками<span class="tag green">Марина</span></button><button class="task">Сетка экранов<span class="tag purple">Илья</span></button></div><div class="lane"><div class="lane-top"><span>Готово</span><span class="count">3</span></div><button class="task">Разделили роли<span class="tag green">команда</span></button><button class="task">Сформулировали гипотезу<span class="tag green">готово</span></button></div></div></article>
+          </section>
+          <section id="notes" class="view notes-view"><div class="notes-grid"><article class="card note"><h2>Гипотеза проекта</h2><p>Студенты часто решают похожие задачи в десятках разрозненных чатов: ищут напарника, спрашивают про дедлайн, договариваются о встрече. Нужен единый спокойный контекст — без потери важного в ленте сообщений.</p><p>В первой версии проверяем: будут ли команды открывать пространство проекта из группового чата, чтобы видеть общую цель и следующий шаг.</p><div class="checklist"><label class="check"><input type="checkbox" checked> Провести интервью</label><label class="check"><input type="checkbox" checked> Сформулировать сценарий</label><label class="check"><input type="checkbox"> Собрать кликабельный прототип</label><label class="check"><input type="checkbox"> Подготовить питч</label></div></article><aside class="card outline"><h3>На странице</h3><button>Гипотеза проекта</button><button>Что узнали на интервью</button><button>Сценарий в MAX</button><button>Риски и вопросы</button></aside></div></section>
+          <section id="board" class="view board-view"><div class="board-full"><div class="full-lane" data-lane="Нужно сделать"><div class="lane-top"><span>Нужно сделать</span><span class="count">2</span></div><button class="task">Собрать боли студентов<span class="tag">исследование</span></button><button class="task">Выбрать формат MVP<span class="tag purple">решение</span></button><button class="new-task">+ Добавить задачу</button></div><div class="full-lane" data-lane="В работе"><div class="lane-top"><span>В работе</span><span class="count">2</span></div><button class="task">Интервью с первокурсниками<span class="tag green">Марина</span></button><button class="task">Сетка экранов<span class="tag purple">Илья</span></button><button class="new-task">+ Добавить задачу</button></div><div class="full-lane" data-lane="Готово"><div class="lane-top"><span>Готово</span><span class="count">3</span></div><button class="task">Разделили роли<span class="tag green">команда</span></button><button class="task">Сформулировали гипотезу<span class="tag green">готово</span></button><button class="new-task">+ Добавить задачу</button></div></div></section>
+        </div>
+      </main>
+    </div>
+    <dialog id="taskDialog"><form class="modal" id="taskForm"><h2>Новая задача</h2><p>Добавим её в доску проекта.</p><label for="taskName">Что нужно сделать?</label><input id="taskName" required maxlength="72" placeholder="Например, подготовить сценарий демо" /><label for="taskLane">Колонка</label><select id="taskLane"><option>Нужно сделать</option><option>В работе</option><option>Готово</option></select><div class="modal-actions"><button type="button" id="cancelTask">Отмена</button><button class="primary" type="submit">Добавить</button></div></form></dialog>
+    <div class="toast" id="toast"><span>✓</span><span id="toastText">Готово</span></div>
+    <script>
+      const tabs = document.querySelectorAll('.tab');
+      const views = document.querySelectorAll('.view');
+      const showView = id => { tabs.forEach(t => t.classList.toggle('active', t.dataset.view === id)); views.forEach(v => v.classList.toggle('hidden', v.id !== id)); };
+      document.querySelectorAll('[data-view]').forEach(btn => btn.addEventListener('click', () => showView(btn.dataset.view)));
+      showView('overview');
+      const toast = document.getElementById('toast'), toastText = document.getElementById('toastText');
+      let toastTimer; function notify(text) { toastText.textContent = text; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 2600); }
+      document.getElementById('shareBtn').addEventListener('click', () => notify('Ссылка на проект скопирована. В MAX её увидит вся команда.'));
+      const dialog = document.getElementById('taskDialog'); let activeLane;
+      document.querySelectorAll('.new-task').forEach(button => button.addEventListener('click', () => { activeLane = button.closest('.full-lane'); document.getElementById('taskLane').value = activeLane.dataset.lane; dialog.showModal(); document.getElementById('taskName').focus(); }));
+      document.getElementById('cancelTask').addEventListener('click', () => dialog.close());
+      document.getElementById('taskForm').addEventListener('submit', event => { event.preventDefault(); const name = document.getElementById('taskName').value.trim(); const laneName = document.getElementById('taskLane').value; const lane = [...document.querySelectorAll('.full-lane')].find(el => el.dataset.lane === laneName); const task = document.createElement('button'); task.className = 'task'; task.textContent = name; const tag = document.createElement('span'); tag.className = 'tag purple'; tag.textContent = 'новая'; task.appendChild(tag); lane.insertBefore(task, lane.querySelector('.new-task')); const count = lane.querySelector('.count'); count.textContent = Number(count.textContent) + 1; dialog.close(); event.target.reset(); notify('Задача добавлена в «' + laneName + '».'); });
+      document.querySelectorAll('.check input').forEach(box => box.addEventListener('change', () => notify(box.checked ? 'Пункт отмечен как выполненный.' : 'Пункт снова в работе.')));
+      document.querySelectorAll('.project').forEach(project => project.addEventListener('click', () => { document.querySelectorAll('.project').forEach(p => p.classList.remove('selected')); project.classList.add('selected'); notify('Открыт проект «' + project.innerText.trim() + '».'); }));
+    </script>
+  </body>
+</html>
