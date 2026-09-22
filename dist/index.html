@@ -2,66 +2,510 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#6254e7" />
-    <meta name="description" content="Курс — мини-приложение MAX для обучения, конспектов и дедлайнов" />
-    <title>Курс — обучение в MAX</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='17' fill='%236254e7'/%3E%3Cpath d='M17 17h30v8H26v6h17v8H26v8h21v8H17z' fill='white'/%3E%3C/svg%3E" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#5e57db" />
+    <meta name="description" content="Олимп — подбор олимпиад и дедлайнов внутри MAX" />
+    <title>Олимп — олимпиады в MAX</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='17' fill='%235e57db'/%3E%3Cpath d='M18 18h28l-5 12h-7v16h-8V30h-8z' fill='white'/%3E%3C/svg%3E" />
+    <script src="https://st.max.ru/js/max-web-app.js"></script>
+    <script defer src="./max-bridge.js"></script>
     <style>
-      :root{--violet:#6254e7;--violet-ink:#4035ba;--ink:#21202e;--muted:#787587;--line:#e8e7ef;--paper:#fff;--bg:#f7f7fb;--lav:#f1efff;--mint:#e7f9f5;--peach:#fff1e3;--pink:#fee9ef;--yellow:#fff4c8;--shadow:0 15px 45px rgba(44,37,102,.09)}
-      *{box-sizing:border-box} body{margin:0;min-width:320px;background:var(--bg);color:var(--ink);font:16px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer}.app{min-height:100vh;display:grid;grid-template-columns:74px 276px minmax(0,1fr)}
-      .rail{display:flex;flex-direction:column;align-items:center;gap:16px;padding:20px 0;border-right:1px solid var(--line);background:#f0eff9}.logo{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:var(--violet);color:#fff;font-size:25px;font-weight:900;box-shadow:0 7px 17px rgba(98,84,231,.33)}.rail button{width:42px;height:42px;border:0;border-radius:13px;background:transparent;color:#777488;font-size:18px}.rail button:hover,.rail button.active{background:#fff;color:var(--violet);box-shadow:0 4px 10px rgba(44,37,102,.08)}.rail .push{flex:1}.user{display:grid;place-items:center;width:36px;height:36px;margin-bottom:4px;border:2px solid #fff;border-radius:50%;background:#19324a;color:#fff;font-size:11px;font-weight:800}
-      .side{overflow:auto;padding:22px 16px;border-right:1px solid var(--line);background:#fcfcfe}.brandline{display:flex;align-items:center;gap:9px;margin:3px 7px 23px;font-size:16px;font-weight:800}.brandline i{width:10px;height:10px;border-radius:50%;background:#ff6e95;box-shadow:14px 0 #72dfe2}.botline{margin-bottom:20px;padding:11px 12px;border:1px solid #ded9ff;border-radius:13px;background:#f4f2ff;color:#5a5490;font-size:12px;line-height:1.4}.botline b{display:block;margin-bottom:2px;color:#4339a9;font-size:13px}.section-title{display:flex;align-items:center;justify-content:space-between;margin:23px 8px 8px;color:#8b8898;font-size:11px;font-weight:850;letter-spacing:.09em;text-transform:uppercase}.section-title button{width:22px;height:22px;border:0;background:none;color:#817c93;font-size:20px}.course{display:flex;align-items:center;gap:10px;width:100%;margin:3px 0;padding:10px 8px;border:0;border-radius:10px;background:transparent;color:#514e61;text-align:left}.course:hover,.course.selected{background:#eeecff;color:#4438bf}.course-icon{display:grid;place-items:center;flex:0 0 auto;width:25px;height:25px;border-radius:8px;font-size:14px}.math{background:#e7e2ff}.art{background:#ffe7ee}.eng{background:#def6f3}.project{background:#fff0d7}.course span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:700}.nav-item{display:flex;align-items:center;gap:10px;padding:9px;border-radius:9px;color:#6d6a7d;font-size:14px}.nav-item:hover{background:#f0eff5;color:var(--ink)}
-      main{min-width:0}.top{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.78)}.crumb{display:flex;align-items:center;gap:9px;min-width:0}.crumb .max{display:inline-flex;align-items:center;padding:4px 8px;border-radius:7px;background:#eeeaff;color:var(--violet-ink);font-size:11px;font-weight:900;letter-spacing:.03em}.crumb span{color:#918e9f;font-size:14px}.crumb b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.top-actions{display:flex;align-items:center;gap:9px}.circle{display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--line);border-radius:11px;color:#666276;background:#fff}.send{display:flex;align-items:center;gap:7px;height:38px;padding:0 13px;border:0;border-radius:11px;background:var(--violet);color:#fff;font-size:13px;font-weight:800}.send:hover{background:var(--violet-ink)}
-      .content{max-width:1420px;margin:auto;padding:31px 34px 48px}.course-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}.eyebrow{margin:0 0 8px;color:var(--violet);font-size:12px;font-weight:850;letter-spacing:.09em;text-transform:uppercase}h1{margin:0 0 7px;letter-spacing:-.045em;font-size:clamp(1.9rem,3.5vw,2.7rem);line-height:1.05}.lead{max-width:660px;margin:0;color:var(--muted);line-height:1.55}.streak{display:flex;align-items:center;gap:10px;margin-top:5px;padding:11px 13px;border:1px solid #dcefe8;border-radius:13px;background:#fbfffd;color:#377366;font-size:13px;font-weight:700}.streak span{display:grid;place-items:center;width:27px;height:27px;border-radius:9px;background:var(--mint);font-size:15px}.tabs{display:flex;gap:21px;margin:30px 0 24px;border-bottom:1px solid var(--line)}.tab{position:relative;padding:0 1px 13px;border:0;background:transparent;color:#787587;font-size:14px;font-weight:800}.tab.active{color:var(--violet)}.tab.active:after{position:absolute;right:0;bottom:-1px;left:0;height:3px;border-radius:4px 4px 0 0;background:var(--violet);content:""}.view{display:none}.view.active{display:block}
-      .page-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(270px,.64fr);gap:23px}.card{border:1px solid var(--line);border-radius:18px;background:var(--paper);box-shadow:0 5px 20px rgba(38,34,74,.025)}.article{padding:30px 32px;min-height:590px}.page-meta{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:22px}.pill{padding:5px 8px;border-radius:7px;background:#f0eff5;color:#686576;font-size:12px;font-weight:750}.pill.violet{background:#eceaff;color:#5043c6}.article h2{margin:0 0 19px;font-size:27px;letter-spacing:-.035em}.article h3{margin:28px 0 8px;font-size:18px;letter-spacing:-.02em}.article p{margin:10px 0;color:#454353;line-height:1.68}.article .hint{display:flex;gap:10px;align-items:flex-start;margin:20px 0;padding:14px;border-radius:12px;background:var(--lav);color:#4b4582;font-size:14px}.hint b{color:var(--violet)}.formula{margin:20px 0;padding:17px 20px;border-left:3px solid #5b4ee1;border-radius:0 11px 11px 0;background:#f7f6ff;color:#3d367b;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:16px}.block-list{display:grid;gap:9px;margin:17px 0}.block-list label{display:flex;align-items:center;gap:10px;padding:7px 0;color:#4d4a5a}.block-list input{width:18px;height:18px;accent-color:var(--violet)}.add-block{display:flex;align-items:center;gap:8px;margin-top:25px;padding:10px 0;border:0;background:transparent;color:#8b879a;font-size:14px}.add-block:hover{color:var(--violet)}.added-block{margin-top:14px;padding:12px 14px;border-left:3px solid #8d84ee;border-radius:0 8px 8px 0;background:#faf9ff;color:#4c4961;font-size:14px;line-height:1.5}
-      .right-col{display:grid;align-content:start;gap:17px}.panel-head{display:flex;align-items:center;justify-content:space-between;padding:18px 19px 13px}.panel-head h3{margin:0;font-size:15px;letter-spacing:-.01em}.panel-head button{border:0;background:none;color:var(--violet);font-size:12px;font-weight:800}.today{padding:0 19px 17px}.lesson{display:grid;grid-template-columns:40px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid #efeff4}.lesson:last-child{border-bottom:0}.time{padding-top:2px;color:#827e90;font-size:12px;font-weight:800}.lesson b{display:block;margin-bottom:2px;font-size:13px}.lesson small{color:#8a8698;font-size:12px}.progress-card{padding:19px}.progress-card h3{margin:0 0 12px;font-size:15px}.progress-row{display:flex;justify-content:space-between;margin-bottom:8px;color:#6e6a7c;font-size:13px;font-weight:750}.bar{overflow:hidden;height:8px;border-radius:99px;background:#edecf3}.bar i{display:block;width:56%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7768ef,#63d5cb)}.progress-card small{display:block;margin-top:10px;color:#918e9c;font-size:12px}.chat-card{padding:16px 18px;background:#282448;color:#fff}.chat-card .chat-label{color:#a9a5d4;font-size:11px;font-weight:850;letter-spacing:.08em}.chat-card p{margin:8px 0 11px;font-size:13px;line-height:1.48}.chat-card button{padding:0;border:0;background:transparent;color:#8ce9de;font-size:12px;font-weight:850}
-      .task-top{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:19px}.task-top h2,.base-top h2{margin:0 0 4px;font-size:25px;letter-spacing:-.035em}.task-top p,.base-top p{margin:0;color:var(--muted);font-size:14px}.new-btn{height:38px;padding:0 13px;border:0;border-radius:10px;background:var(--violet);color:#fff;font-size:13px;font-weight:800}.new-btn:hover{background:var(--violet-ink)}.tasks{overflow:hidden}.task-row{display:grid;grid-template-columns:28px minmax(180px,1.5fr) minmax(110px,.75fr) 110px 102px;gap:12px;align-items:center;padding:15px 19px;border-bottom:1px solid #efeff4}.task-row:last-child{border-bottom:0}.task-row input{width:18px;height:18px;accent-color:var(--violet)}.task-name{font-size:14px;font-weight:750}.task-name small{display:block;margin-top:2px;color:#928f9d;font-size:12px;font-weight:500}.course-chip{width:max-content;padding:4px 7px;border-radius:6px;background:#edeaff;color:#5749c3;font-size:11px;font-weight:800}.due{color:#686577;font-size:13px}.status{width:max-content;padding:5px 7px;border-radius:7px;background:#fff2cf;color:#927226;font-size:11px;font-weight:850}.status.work{background:#e6f8f3;color:#267e67}.status.done{background:#eeeef3;color:#72707c}.base-top{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:19px}.search{width:230px;max-width:45%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;outline-color:var(--violet);background:#fff;font-size:13px}.materials{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.material{min-height:174px;padding:18px;border:1px solid var(--line);border-radius:16px;background:#fff;text-align:left;transition:.15s}.material:hover{transform:translateY(-2px);box-shadow:var(--shadow)}.material .icon{display:grid;place-items:center;width:31px;height:31px;margin-bottom:18px;border-radius:9px;background:#efecff;color:#574ac8;font-weight:900}.material h3{margin:0 0 6px;font-size:15px;line-height:1.35}.material p{margin:0;color:#838091;font-size:12px;line-height:1.45}.material footer{margin-top:18px;color:#6154d4;font-size:11px;font-weight:850}
-      dialog{width:min(460px,calc(100% - 32px));padding:0;border:0;border-radius:20px;box-shadow:0 24px 80px rgba(23,19,55,.25)}dialog::backdrop{background:rgba(25,23,44,.35);backdrop-filter:blur(3px)}.modal{padding:25px}.modal h2{margin:0 0 6px;font-size:22px}.modal p{margin:0 0 18px;color:#777487;font-size:14px}.modal label{display:block;margin:13px 0 6px;color:#5d5a6a;font-size:13px;font-weight:750}.modal input,.modal textarea,.modal select{width:100%;padding:11px 12px;border:1px solid #dedde7;border-radius:10px;outline-color:var(--violet);background:#fff}.modal textarea{min-height:90px;resize:vertical}.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:22px}.modal-actions button{padding:10px 14px;border:1px solid #dedde7;border-radius:10px;background:#fff;font-weight:750}.modal-actions .primary{border-color:var(--violet);color:#fff;background:var(--violet)}.toast{position:fixed;right:24px;bottom:24px;z-index:10;display:flex;gap:10px;align-items:center;max-width:360px;padding:13px 16px;border:1px solid #d5f0e8;border-radius:13px;background:#f2fffb;color:#236755;box-shadow:var(--shadow);transform:translateY(120px);opacity:0;transition:.25s;font-size:14px;font-weight:650}.toast.show{transform:translateY(0);opacity:1}
-      @media(max-width:980px){.app{grid-template-columns:68px minmax(0,1fr)}.side{display:none}.page-layout{grid-template-columns:1fr}.right-col{grid-template-columns:repeat(3,minmax(0,1fr))}.task-row{grid-template-columns:28px 1.5fr 110px 90px}.task-row .course-chip{display:none}.materials{grid-template-columns:repeat(2,minmax(0,1fr))}}
-      @media(max-width:640px){.app{display:block}.rail{position:fixed;z-index:4;right:0;bottom:0;left:0;flex-direction:row;justify-content:space-around;height:62px;padding:9px 12px;border-top:1px solid var(--line);border-right:0}.rail .logo,.rail .push,.rail button:nth-of-type(3),.rail button:nth-of-type(4),.rail .user{display:none}main{padding-bottom:62px}.top{height:61px;padding:0 15px}.crumb span{display:none}.top .circle{display:none}.send{padding:0 10px;font-size:12px}.content{padding:25px 16px 32px}.course-head{display:block}.streak{display:inline-flex;margin-top:16px}.tabs{gap:16px;overflow:auto}.article{padding:23px 20px;min-height:0}.right-col{grid-template-columns:1fr}.task-top,.base-top{align-items:flex-start;flex-direction:column}.task-row{grid-template-columns:28px minmax(0,1fr) 70px}.task-row .due{display:none}.materials{grid-template-columns:1fr}.search{max-width:100%;width:100%}.toast{right:16px;bottom:78px;left:16px}}
+      :root{--violet:#5e57db;--violet2:#4b44bf;--ink:#252430;--muted:#777587;--line:#e8e7ef;--paper:#fff;--bg:#f7f7fb;--lav:#efeeff;--mint:#e8faf2;--pink:#fff0f3;--orange:#fff2e6;--shadow:0 16px 42px rgba(46,42,101,.09)}
+      *{box-sizing:border-box}body{min-width:320px;margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",sans-serif}button,input,select{font:inherit}button{cursor:pointer}.app{display:grid;min-height:100vh;grid-template-columns:72px 274px minmax(0,1fr)}
+      .rail{display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 0;border-right:1px solid var(--line);background:#f0eff8}.logo{display:grid;place-items:center;width:43px;height:43px;margin-bottom:6px;border-radius:14px;background:linear-gradient(145deg,#8079f1,#5048d5);box-shadow:0 8px 18px rgba(80,70,214,.31);color:#fff;font-size:25px;font-weight:950}.rail button{display:grid;place-items:center;width:42px;height:42px;border:0;border-radius:13px;background:transparent;color:#767383;font-size:18px}.rail button:hover,.rail button.active{background:#fff;color:var(--violet);box-shadow:0 4px 13px rgba(40,34,96,.08)}.rail .push{flex:1}.avatar{display:grid;place-items:center;width:35px;height:35px;margin-bottom:3px;border:2px solid #fff;border-radius:50%;background:#24314d;color:#fff;font-size:11px;font-weight:850}
+      .side{display:flex;flex-direction:column;overflow:auto;padding:18px 12px;background:#fcfcfe}.brand{display:flex;align-items:center;justify-content:space-between;margin:1px 5px 20px;padding:8px}.brand b{display:flex;align-items:center;gap:8px;font-size:15px}.brand i{display:grid;place-items:center;width:23px;height:23px;border-radius:7px;background:#282641;color:#fff;font-size:12px;font-style:normal}.brand span{color:#908c9c;font-size:14px}.bot-note{margin:0 5px 17px;padding:10px 11px;border:1px solid #dedaff;border-radius:12px;background:#f4f2ff;color:#666187;font-size:12px;line-height:1.42}.bot-note strong{color:#4d44b8}.nav{display:grid;gap:2px}.nav button{display:flex;align-items:center;gap:10px;width:100%;padding:9px;border:0;border-radius:9px;background:transparent;color:#686575;text-align:left;font-size:13px;font-weight:700}.nav button:hover,.nav button.active{background:#edebff;color:#483cc0}.nav i{width:18px;color:#918d9c;font-size:16px;font-style:normal;text-align:center}.nav small{margin-left:auto;color:#9b97a6;font-size:11px;font-weight:700}.section{display:flex;align-items:center;justify-content:space-between;margin:21px 8px 8px;color:#9793a2;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.section button{border:0;background:none;color:#898595;font-size:17px}.profile{margin:0 5px;padding:13px;border:1px solid #e4e2ed;border-radius:14px;background:#fff}.profile-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.profile-head b{font-size:13px}.profile-head button{padding:0;border:0;background:none;color:var(--violet);font-size:11px;font-weight:800}.profile p{margin:0 0 10px;color:#787586;font-size:12px}.profile-tags{display:flex;flex-wrap:wrap;gap:5px}.profile-tags span{padding:4px 6px;border-radius:6px;background:#f0efff;color:#5b4fca;font-size:10px;font-weight:800}.sources{margin-top:auto;padding:15px 7px 2px;border-top:1px solid var(--line)}.sources b{display:block;margin-bottom:5px;color:#706c7c;font-size:11px}.source-line{display:flex;align-items:center;gap:7px;color:#9995a3;font-size:11px}.dot{width:7px;height:7px;border-radius:50%;background:#59c9a6}.source-line button{margin-left:auto;padding:0;border:0;background:transparent;color:var(--violet);font-size:11px;font-weight:800}
+      main{min-width:0;background:#fff}.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;height:67px;padding:0 32px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.88);backdrop-filter:blur(14px)}.crumb{display:flex;align-items:center;gap:9px;color:#908c9c;font-size:13px}.max{padding:4px 8px;border-radius:7px;background:#edebff;color:#5148c5;font-size:10px;font-weight:900;letter-spacing:.05em}.crumb b{color:#4e4a59;font-size:13px}.top-actions{display:flex;align-items:center;gap:8px}.circle{display:grid;place-items:center;width:37px;height:37px;border:1px solid var(--line);border-radius:10px;background:#fff;color:#777383;font-size:16px}.circle:hover{border-color:#c9c4ef;color:var(--violet)}.bot-button{display:flex;align-items:center;gap:7px;height:37px;padding:0 12px;border:0;border-radius:10px;background:var(--violet);color:#fff;font-size:12px;font-weight:800}.bot-button:hover{background:var(--violet2)}
+      .content{max-width:1380px;margin:0 auto;padding:32px 35px 60px}.hero{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:27px}.eyebrow{margin:0 0 8px;color:var(--violet);font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}h1{margin:0;letter-spacing:-.052em;font-size:clamp(2.1rem,4vw,2.85rem);line-height:1.05}.lead{max-width:710px;margin:8px 0 0;color:var(--muted);font-size:15px}.sync{display:flex;align-items:center;gap:9px;min-width:230px;padding:11px 12px;border:1px solid #d9efe7;border-radius:13px;background:#fbfffd;color:#3c7665;font-size:12px;font-weight:700}.sync span{display:grid;place-items:center;width:27px;height:27px;border-radius:9px;background:var(--mint);font-size:15px}.sync small{display:block;color:#868b90;font-size:10px;font-weight:600}
+      .profile-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:13px;padding:12px 14px;border:1px solid #e1def9;border-radius:15px;background:linear-gradient(100deg,#f5f3ff,#fbfbff)}.persona{display:flex;align-items:center;gap:10px}.persona-icon{display:grid;place-items:center;width:35px;height:35px;border-radius:11px;background:#dedaff;font-size:17px}.persona b{display:block;font-size:13px}.persona small{display:block;color:#807c8d;font-size:11px}.switch{display:flex;gap:3px;padding:3px;border-radius:9px;background:#e8e6f6}.switch button{padding:6px 10px;border:0;border-radius:7px;background:transparent;color:#777384;font-size:12px;font-weight:800}.switch button.active{background:#fff;color:var(--violet);box-shadow:0 2px 6px rgba(37,31,103,.08)}.filter-chips{display:flex;flex-wrap:wrap;gap:6px}.filter-chips button{padding:6px 9px;border:1px solid #dedde8;border-radius:8px;background:#fff;color:#6b6878;font-size:12px;font-weight:750}.filter-chips button.active{border-color:#b9b2f6;background:#eeecff;color:#5145c8}.route{display:flex;align-items:center;gap:9px;margin-bottom:22px;padding:8px 10px;border:1px solid #e9e7f1;border-radius:12px;background:#fff}.route span{margin-right:3px;color:#868291;font-size:12px;font-weight:750}.route button{padding:6px 9px;border:0;border-radius:8px;background:transparent;color:#777383;font-size:12px;font-weight:800}.route button.active{background:#eeecff;color:#5145c8}.route small{margin-left:auto;color:#9995a3;font-size:11px}
+      .workspace{display:grid;grid-template-columns:minmax(0,1.58fr) minmax(260px,.6fr);gap:23px}.tools{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}.result-label{color:#716d7c;font-size:13px;font-weight:750}.result-label b{color:var(--ink)}.search{width:255px;max-width:47%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;outline-color:var(--violet);background:#fff;color:#464351;font-size:13px}.cards{display:grid;gap:11px}.olymp-card{display:grid;grid-template-columns:40px minmax(0,1fr) max-content 31px;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:15px;background:#fff;transition:.16s}.olymp-card:hover{border-color:#d3cef7;box-shadow:0 8px 20px rgba(39,33,96,.06);transform:translateY(-1px)}.card-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--lav);color:#5549c4;font-size:18px;font-weight:900}.card-copy{min-width:0}.card-title{overflow:hidden;margin:0 0 4px;color:#363440;font-size:14px;font-weight:850;text-overflow:ellipsis;white-space:nowrap}.meta{display:flex;flex-wrap:wrap;gap:5px;color:#817d8c;font-size:11px}.badge{padding:2px 5px;border-radius:5px;background:#eff7ff;color:#3375a6;font-size:10px;font-weight:800}.badge.student{background:#fff0f3;color:#b64e70}.level{padding:2px 5px;border-radius:5px;background:#fff4d7;color:#8b702b;font-size:10px;font-weight:850}.benefit{padding:2px 5px;border-radius:5px;background:#f3f2f7;color:#6f6b7b;font-size:10px;font-weight:750}.match{margin:5px 0 0;color:#625c7b;font-size:11px;line-height:1.35}.match b{color:#5145c7}.card-source{display:inline-flex;margin-top:7px;color:#574ac8;font-size:11px;font-weight:850;text-decoration:none}.card-source:hover{text-decoration:underline}.deadline{padding:6px 8px;border-radius:8px;background:#fff8e8;color:#876b28;font-size:10px;font-weight:800;text-align:right}.deadline.is-date{background:#eaf9f3;color:#26765f}.track{display:grid;place-items:center;width:31px;height:31px;border:1px solid #e3e1ea;border-radius:9px;background:#fff;color:#a09ca9;font-size:16px}.track:hover,.track.saved{border-color:#c6befd;background:#efedff;color:var(--violet)}.empty{padding:38px 20px;border:1px dashed #dcd9e7;border-radius:14px;color:#85818f;text-align:center;font-size:13px}.load-note{margin-top:13px;color:#9a96a5;font-size:11px;text-align:center}.hidden{display:none!important}.uni-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:14px}.uni-choice{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:#514d5b;text-align:left}.uni-choice:hover,.uni-choice.active{border-color:#c7bffc;background:#f5f3ff}.uni-choice b{display:block;font-size:13px}.uni-choice small{display:block;margin-top:3px;color:#898592;font-size:10px}.uni-choice.active small{color:#5d52c8}.benefit-card{margin-bottom:14px;padding:16px;border:1px solid #dedaff;border-radius:15px;background:#f7f6ff}.verified{display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;color:#367a65;font-size:10px;font-weight:850}.verified:before{width:7px;height:7px;border-radius:50%;background:#56c7a5;content:""}.benefit-card h2{margin:0 0 4px;font-size:18px;letter-spacing:-.025em}.benefit-main{margin:11px 0;padding:10px;border-radius:10px;background:#fff;color:#5147b7;font-size:13px;font-weight:850}.benefit-card p{margin:8px 0;color:#696577;font-size:12px;line-height:1.45}.benefit-card a{color:#574ac8;font-size:12px;font-weight:800;text-decoration:none}.uni-results-title{margin:17px 0 9px;font-size:14px;font-weight:850}.uni-row{display:flex;align-items:center;gap:9px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#fff}.uni-row+.uni-row{margin-top:7px}.uni-row .title{min-width:0;flex:1}.uni-row b{display:block;overflow:hidden;font-size:12px;text-overflow:ellipsis;white-space:nowrap}.uni-row small{display:block;margin-top:2px;color:#888492;font-size:10px}.uni-row button{padding:5px 7px;border:0;border-radius:7px;background:#eeecff;color:#5549c4;font-size:11px;font-weight:850}
+      .right{display:grid;align-content:start;gap:16px}.panel{overflow:hidden;border:1px solid var(--line);border-radius:16px;background:#fff}.panel-head{display:flex;align-items:center;justify-content:space-between;padding:15px 16px 10px}.panel-head h2{margin:0;font-size:15px;letter-spacing:-.02em}.panel-head button{padding:0;border:0;background:none;color:var(--violet);font-size:11px;font-weight:800}.plan{padding:0 16px 9px}.track-summary{margin:0 0 3px;color:#777382;font-size:11px;line-height:1.4}.plan-item{display:flex;gap:9px;padding:11px 0;border-bottom:1px solid #efeff4}.plan-item:last-child{border-bottom:0}.date{display:grid;place-items:center;flex:0 0 auto;width:32px;height:32px;border-radius:9px;background:#fff0e6;color:#b8692d;font-size:10px;font-weight:900;text-align:center}.plan-item b{display:block;font-size:12px;line-height:1.35}.plan-item small{display:block;margin-top:2px;color:#8c8896;font-size:11px;line-height:1.35}.reminder{display:inline-block;margin-top:5px;padding:3px 5px;border-radius:5px;background:#eeecff;color:#5b50c6;font-size:10px;font-weight:800}.track-empty{padding:8px 0 14px;color:#85818f;font-size:12px;line-height:1.45}.process{padding:3px 16px 16px}.flow{display:grid;grid-template-columns:1fr 20px 1fr 20px 1fr;align-items:center;margin-top:11px}.flow-node{display:grid;place-items:center;min-height:67px;padding:7px;border-radius:11px;background:#f5f4fb;color:#55516c;font-size:10px;font-weight:800;text-align:center}.flow-node b{display:block;margin-bottom:4px;color:#5548c6;font-size:17px}.flow-arrow{color:#a5a1b3;text-align:center}.max-panel{padding:15px 16px;background:#292544;color:#fff}.max-panel .max-label{color:#aaa6d3;font-size:10px;font-weight:900;letter-spacing:.08em}.max-panel p{margin:8px 0 11px;font-size:12px;line-height:1.48}.max-panel button{padding:0;border:0;background:transparent;color:#8ce7dc;font-size:12px;font-weight:850}
+      dialog{width:min(460px,calc(100% - 30px));padding:0;border:0;border-radius:18px;box-shadow:0 26px 80px rgba(23,19,55,.26)}dialog::backdrop{background:rgba(25,22,46,.35);backdrop-filter:blur(3px)}.modal{padding:24px}.modal h2{margin:0 0 7px;font-size:22px;letter-spacing:-.03em}.modal p{margin:0 0 18px;color:#7e7a89;font-size:14px}.modal label{display:block;margin:12px 0 6px;color:#5e5a69;font-size:13px;font-weight:750}.modal select{width:100%;padding:11px;border:1px solid #dfdde7;border-radius:10px;outline-color:var(--violet);background:#fff}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:21px}.modal-actions button{padding:10px 13px;border:1px solid #dedce6;border-radius:10px;background:#fff;color:#4d4957;font-size:13px;font-weight:750}.modal-actions .primary{border-color:var(--violet);background:var(--violet);color:#fff}.toast{position:fixed;right:23px;bottom:23px;z-index:10;display:flex;gap:9px;align-items:center;max-width:360px;padding:13px 15px;border:1px solid #d4eee7;border-radius:12px;background:#f3fffb;color:#296d5c;box-shadow:var(--shadow);font-size:13px;font-weight:700;opacity:0;transform:translateY(120px);transition:.24s}.toast.show{opacity:1;transform:translateY(0)}
+      @media(max-width:1020px){.app{grid-template-columns:68px minmax(0,1fr)}.side{display:none}.workspace{grid-template-columns:1fr}.right{grid-template-columns:repeat(3,minmax(0,1fr))}.content{padding-right:25px;padding-left:25px}}@media(max-width:710px){.app{display:block}.rail{position:fixed;z-index:10;right:0;bottom:0;left:0;flex-direction:row;justify-content:space-around;height:62px;padding:9px 10px;border-top:1px solid var(--line);border-right:0}.rail .logo,.rail .push,.rail button:nth-of-type(3),.rail button:nth-of-type(4),.avatar{display:none}main{padding-bottom:62px}.top{height:60px;padding:0 14px}.crumb span:not(.max){display:none}.top .circle{display:none}.bot-button{padding:0 10px;font-size:11px}.content{padding:25px 16px 34px}.hero{display:block}.sync{display:inline-flex;margin-top:17px}.profile-bar{align-items:flex-start;flex-wrap:wrap}.filter-chips{width:100%;order:4}.tools{align-items:stretch;flex-direction:column}.search{width:100%;max-width:none}.olymp-card{grid-template-columns:38px minmax(0,1fr) 29px}.deadline{display:none}.right{grid-template-columns:1fr}.toast{right:15px;bottom:77px;left:15px}}
+    </style>
+    <style>.quick-profile{padding:6px 9px;border:1px solid #dedde8;border-radius:8px;background:#fff;color:#5b4fca;font:800 12px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif}.quick-profile:hover{border-color:#b9b2f6;background:#eeecff}.subjects-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:48vh;overflow:auto}.subject-option{min-height:38px;padding:7px 8px;border:1px solid #e0dde8;border-radius:9px;background:#fff;color:#625e6e;font:700 12px/1.25 -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;text-align:left}.subject-option.active{border-color:#b9b2f6;background:#eeecff;color:#5145c8}@media(max-width:440px){.subjects-grid{grid-template-columns:1fr}}</style>
+    <style>.materials-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:13px}.materials-head h2{margin:0;font-size:18px;letter-spacing:-.025em}.materials-head p{max-width:640px;margin:4px 0 0;color:#7c7887;font-size:12px;line-height:1.42}.materials-head button{flex:0 0 auto;padding:7px 9px;border:1px solid #dedde8;border-radius:8px;background:#fff;color:#5b4fca;font-size:11px;font-weight:800}.materials-head button:disabled{cursor:default;opacity:.58}.materials-list{display:grid;gap:10px}.material-card{display:grid;grid-template-columns:39px minmax(0,1fr) max-content;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:15px;background:#fff}.material-icon{display:grid;place-items:center;width:39px;height:39px;border-radius:12px;background:#fff0e6;color:#b8692d;font-size:17px;font-weight:900}.material-copy{min-width:0}.material-copy b{display:block;margin-bottom:3px;color:#373440;font-size:14px}.material-copy p{margin:0;color:#817d8c;font-size:11px;line-height:1.4}.material-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.material-tags span{padding:2px 5px;border-radius:5px;background:#f3f2f7;color:#6f6b7b;font-size:10px;font-weight:800}.material-open{padding:7px 9px;border:0;border-radius:8px;background:#eeecff;color:#5549c4;font-size:11px;font-weight:850;text-decoration:none;white-space:nowrap}.materials-empty{padding:32px 18px;border:1px dashed #dcd9e7;border-radius:14px;color:#85818f;font-size:13px;text-align:center}.uni-search{width:min(330px,48%)}.uni-search-status{margin:-2px 0 10px;color:#888492;font-size:11px;font-weight:700}@media(max-width:710px){.route{flex-wrap:wrap}.route small{width:100%;margin-left:3px}.uni-search{width:100%}}@media(max-width:560px){.materials-head{display:block}.materials-head button{margin-top:10px}.material-card{grid-template-columns:36px minmax(0,1fr)}.material-open{grid-column:2;justify-self:start}}</style>
+    <style>.rail button>i{font-style:normal}.rail button>span{display:none}@media(max-width:710px){main{padding-bottom:calc(82px + env(safe-area-inset-bottom))}.rail{z-index:20;justify-content:space-around;height:calc(72px + env(safe-area-inset-bottom));padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:rgba(250,250,254,.96);backdrop-filter:blur(18px)}.rail .logo,.rail .push,.rail .avatar{display:none}.rail button,.rail button:nth-of-type(3),.rail button:nth-of-type(4){display:grid;width:25%;height:56px;grid-template-rows:22px 15px;gap:2px;border-radius:12px;color:#888493;font-size:17px;line-height:1}.rail button>span{display:block;overflow:hidden;max-width:100%;font-size:10px;font-weight:800;line-height:15px;text-overflow:ellipsis;white-space:nowrap}.rail button.active{background:#eeecff;color:var(--violet);box-shadow:none}.content{padding:18px 16px 28px}.top{height:54px;padding:0 16px}.top .crumb{gap:6px;font-size:12px}.top .crumb b{font-size:12px}.top-actions{gap:6px}.bot-button{height:34px;padding:0 10px;font-size:11px}.hero{margin-bottom:17px}.eyebrow{margin-bottom:6px}.lead{margin-top:9px;font-size:14px;line-height:1.42}.sync{min-width:0;margin-top:14px;padding:9px 10px}.profile-bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:12px}.persona{min-width:0}.quick-profile{align-self:center}.switch{grid-column:1/-1;justify-self:start}.filter-chips{grid-column:1/-1;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}.filter-chips button{min-height:36px;white-space:nowrap}.route{gap:4px;margin-bottom:17px;padding:9px 10px}.route span{width:100%;margin-bottom:1px}.route button{min-height:34px;padding:6px 8px;white-space:nowrap}.route small{line-height:1.35}.materials-head{margin-bottom:12px}.materials-head h2{font-size:17px}.materials-head p{font-size:12px}.material-card{padding:12px}.right{gap:12px}.panel-head{padding:14px 14px 9px}.toast{right:12px;bottom:calc(82px + env(safe-area-inset-bottom));left:12px;max-width:none}dialog{width:100%;max-width:none;margin:auto 0 0;border-radius:20px 20px 0 0}.modal{padding:21px 18px calc(21px + env(safe-area-inset-bottom))}.modal-actions button{min-height:42px}}@media(max-width:390px){.top .crumb span:not(.max),.top .crumb>b{display:none}.bot-button{padding:0 9px}.route button{font-size:11px}.material-card{grid-template-columns:34px minmax(0,1fr);gap:10px}.material-icon{width:34px;height:34px}.material-copy b{font-size:13px}}</style>
+    <style>
+      .card-path{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:7px 0 0;color:#8b8797;font-size:10px;font-weight:750}.card-path span{padding:2px 5px;border-radius:5px;background:#f6f5fa}.card-path i{color:#aaa6b4;font-style:normal}.connection-jump,.relation-clear{padding:0;border:0;background:transparent;color:#5549c4;font-size:10px;font-weight:850;text-decoration:underline;text-underline-offset:2px}.connections-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:13px}.connections-head h2{margin:0;font-size:18px;letter-spacing:-.025em}.connections-head p{max-width:650px;margin:4px 0 0;color:#7c7887;font-size:12px;line-height:1.42}.connection-select{flex:0 0 auto;max-width:210px;padding:8px 9px;border:1px solid #dedde8;border-radius:9px;background:#fff;color:#554f62;font-size:11px;font-weight:800}.connection-legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:13px;padding:11px;border:1px solid #e4e1f5;border-radius:14px;background:#faf9ff}.connection-legend div{min-width:0;padding:6px 8px;border-radius:9px;background:#fff;color:#787385;font-size:10px;line-height:1.35}.connection-legend b{display:block;margin-bottom:2px;color:#5549c4;font-size:10px}.connection-list{display:grid;gap:10px}.connection-card{padding:14px;border:1px solid var(--line);border-radius:15px;background:#fff}.connection-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:11px}.connection-card-top b{font-size:13px}.connection-card-top span{padding:3px 6px;border-radius:6px;background:#fff4d7;color:#846a27;font-size:10px;font-weight:850}.connection-path{display:grid;grid-template-columns:minmax(80px,.7fr) 18px minmax(130px,1.35fr) 18px minmax(110px,.9fr);align-items:stretch;gap:5px}.connection-node{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:10px;border-radius:10px;background:#f5f4fb;color:#55516c}.connection-node .node-label{margin-bottom:4px;color:#8a8698;font-size:9px;font-weight:900;letter-spacing:.055em;text-transform:uppercase}.connection-node b{overflow:hidden;color:#373440;font-size:11px;line-height:1.3;text-overflow:ellipsis}.connection-node small{display:block;margin-top:3px;color:#716c7e;font-size:10px;line-height:1.32}.connection-node.subject-node{background:#eef7ff}.connection-node.olympiad-node{background:#f3f1ff}.connection-node.university-node{background:#effaf5}.connection-arrow{display:grid;place-items:center;color:#aaa5b8;font-size:18px}.connection-rule{margin:10px 0 0;color:#757181;font-size:11px;line-height:1.42}.connection-rule b{color:#4f46b7}.connection-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}.connection-state{display:inline-flex;align-items:center;gap:5px;color:#8c6d24;font-size:10px;font-weight:800}.connection-state:before{width:6px;height:6px;border-radius:50%;background:#e6b654;content:""}.connection-open{padding:7px 9px;border-radius:8px;background:#eeecff;color:#5549c4;font-size:11px;font-weight:850;text-decoration:none}.connection-empty{padding:30px 18px;border:1px dashed #dcd9e7;border-radius:14px;color:#85818f;font-size:13px;text-align:center}.connection-note{margin-top:12px;color:#8b8795;font-size:11px;line-height:1.45}.connection-note b{color:#5549c4}@media(max-width:710px){.connections-head{display:block}.connection-select{width:100%;max-width:none;margin-top:10px}.connection-legend{grid-template-columns:1fr;margin-bottom:11px}.connection-path{grid-template-columns:1fr;gap:5px}.connection-arrow{height:14px;transform:rotate(90deg)}.connection-card{padding:12px}.connection-actions{align-items:flex-start;flex-direction:column}.connection-open{width:100%;text-align:center}.card-path{line-height:1.4}}
+    </style>
+    <style>
+      .catalog-filters{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:-2px 0 13px;padding:10px 11px;border:1px solid #e8e6f1;border-radius:12px;background:#fcfcff}.filter-group{display:flex;align-items:center;flex-wrap:wrap;gap:6px}.filter-group>span,.sort-label{color:#817d8d;font-size:10px;font-weight:850}.catalog-filter,.university-filter{min-height:29px;padding:5px 8px;border:1px solid #dfdde8;border-radius:8px;background:#fff;color:#6c6877;font-size:11px;font-weight:800}.catalog-filter:hover,.university-filter:hover{border-color:#c7c0f7;color:#5549c4}.catalog-filter.active,.university-filter.active{border-color:#b9b2f6;background:#eeecff;color:#5145c8}.catalog-filter[disabled]{cursor:default;opacity:.48}.catalog-filters select,.university-filters select{min-height:29px;padding:4px 7px;border:1px solid #dfdde8;border-radius:8px;background:#fff;color:#625e6e;font-size:11px;font-weight:750}.filter-reset{padding:4px 1px;border:0;background:transparent;color:#6c62c7;font-size:11px;font-weight:850}.university-filters{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:-2px 0 10px}.university-filters:before{content:"Регион:";margin-right:2px;color:#817d8d;font-size:10px;font-weight:850}.uni-choice .region{display:block;margin-top:3px;color:#aaa5b2;font-size:10px;font-weight:700}@media(max-width:710px){.catalog-filters{align-items:flex-start;flex-direction:column;padding:10px}.filter-group{width:100%}.filter-group:nth-child(2){padding-top:7px;border-top:1px solid #efedf5}.sort-label{margin-left:auto}.catalog-filters select{max-width:142px}.university-filters{margin-top:0}.university-filters select{min-height:32px;max-width:calc(100% - 58px)}.university-filter{min-height:32px}.card-path{display:none}}
+    </style>
+    <style>
+      .campus-filters{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:-2px 0 9px}.campus-filters:before{content:"Площадка:";margin-right:2px;color:#817d8d;font-size:10px;font-weight:850}.university-sort{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin:-3px 0 10px;color:#817d8d;font-size:10px;font-weight:850}.university-sort select{min-height:29px;padding:4px 7px;border:1px solid #dfdde8;border-radius:8px;background:#fff;color:#625e6e;font-size:11px;font-weight:750}@media(max-width:710px){.campus-filters{margin-top:1px}.university-sort{justify-content:flex-start;margin:2px 0 11px}.university-sort select{min-height:32px}}
+    </style>
+    <style>
+      html{background:var(--bg);scroll-padding-bottom:calc(96px + env(safe-area-inset-bottom))}button{-webkit-tap-highlight-color:transparent}
+      @media(max-width:710px){
+        body{min-width:0;background:#fff}.app{min-height:100dvh}.top{padding:env(safe-area-inset-top) 16px 0;height:calc(54px + env(safe-area-inset-top))}.content{padding:16px 14px 30px}.hero h1{font-size:clamp(1.9rem,9vw,2.25rem);line-height:1.04}.hero h1 br{display:none}.hero .lead{font-size:13px}.sync{width:100%;min-height:48px;margin-top:13px}.profile-bar{border-radius:14px}.route{position:sticky;top:calc(54px + env(safe-area-inset-top));z-index:4;margin-right:-14px;margin-left:-14px;padding:8px 14px 10px;border-width:0 0 1px;border-radius:0;background:rgba(255,255,255,.96);backdrop-filter:blur(14px)}.route span{display:none}.route small{display:none}.route button{min-height:40px;padding:7px 9px}.filter-chips button,.catalog-filter,.university-filter{min-height:40px}.catalog-filters{gap:9px;padding:10px}.filter-group:nth-child(2){gap:7px}.uni-grid{grid-template-columns:1fr;gap:8px}.uni-choice{min-height:68px;padding:13px}.uni-choice b{font-size:14px}.university-filters,.campus-filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}.university-filters::-webkit-scrollbar,.campus-filters::-webkit-scrollbar{display:none}.university-filter{flex:0 0 auto}.university-sort{margin-top:7px}.university-sort select{min-height:40px}.benefit-card{padding:14px;border-radius:14px}.benefit-card h2{font-size:17px}.uni-row{align-items:flex-start;flex-wrap:wrap}.uni-row button{min-height:36px;margin-left:auto}.right{gap:10px;margin-top:2px}.panel{border-radius:14px}.max-panel{padding:14px}.material-open{min-height:38px}.toast{bottom:calc(84px + env(safe-area-inset-bottom))}}
+      @media(max-width:390px){.content{padding-right:12px;padding-left:12px}.route{margin-right:-12px;margin-left:-12px;padding-right:12px;padding-left:12px}.hero h1{font-size:1.85rem}.switch button{padding-right:8px;padding-left:8px}.filter-chips button{padding-right:8px;padding-left:8px}}
     </style>
   </head>
   <body>
     <div class="app">
-      <nav class="rail" aria-label="Основная навигация"><div class="logo">К</div><button class="active" aria-label="Мои курсы">▦</button><button aria-label="Мои задания">✓</button><button aria-label="Уведомления">♧</button><button aria-label="Поиск">⌕</button><div class="push"></div><div class="user">АК</div></nav>
+      <nav class="rail" aria-label="Основная навигация"><div class="logo">О</div><button class="active" data-action="feed" aria-label="Подборка"><i>◈</i><span>Подборка</span></button><button data-action="search" aria-label="Поиск"><i>⌕</i><span>Поиск</span></button><button data-action="prepare" aria-label="Материалы"><i>▱</i><span>Материалы</span></button><button data-action="calendar" aria-label="Календарь"><i>◷</i><span>Календарь</span></button><div class="push"></div><div class="avatar">АК</div></nav>
       <aside class="side">
-        <div class="brandline"><i></i><span>Курс</span></div><div class="botline"><b>MAX mini app</b>Открыто из <strong>@kurs_bot</strong></div>
-        <div class="section-title"><span>Осень 2026</span><button aria-label="Добавить курс">+</button></div>
-        <button class="course selected" data-course="Высшая математика"><span class="course-icon math">∫</span><span>Высшая математика</span></button><button class="course" data-course="История дизайна"><span class="course-icon art">◉</span><span>История дизайна</span></button><button class="course" data-course="Английский B2"><span class="course-icon eng">Aa</span><span>Английский B2</span></button><button class="course" data-course="Проектная студия"><span class="course-icon project">✦</span><span>Проектная студия</span></button>
-        <div class="section-title"><span>Мои блоки</span></div><div class="nav-item">▤ <span>Конспекты</span></div><div class="nav-item">▦ <span>База материалов</span></div><div class="nav-item">◷ <span>Недавнее</span></div><div class="nav-item">♙ <span>Одногруппники</span></div>
+        <div class="brand"><b><i>О</i>Олимп</b><span>⌄</span></div>
+        <div class="bot-note"><strong>MAX mini app</strong><br>Находим олимпиады и не даём пропустить регистрацию.</div>
+        <nav class="nav"><button class="active" data-action="feed"><i>◈</i>Подборка для меня</button><button data-action="tracked"><i>♡</i>Отслеживаю <small id="savedSide">0</small></button><button data-action="calendar"><i>◷</i>Календарь</button><button data-action="prepare"><i>▱</i>Материалы прошлых лет</button></nav>
+        <div class="section"><span>Мой профиль</span></div>
+        <section class="profile"><div class="profile-head"><b id="profileRole">🎒 Школьник</b><button id="editProfile">Изменить</button></div><p id="profileLevel">10 класс · Москва</p><div class="profile-tags"><span>Математика</span><span>Информатика</span></div></section>
+        <div class="sources"><b id="sourceStatus">Источники загружаются…</b><div class="source-line"><span class="dot"></span><span>Данные собирает парсер</span><button id="refreshBtn">Обновить</button></div></div>
       </aside>
       <main>
-        <header class="top"><div class="crumb"><span class="max">MAX</span><span>Курс</span><span>›</span><b id="crumbCourse">Высшая математика</b></div><div class="top-actions"><button class="circle" aria-label="Уведомления">♧</button><button class="send" id="shareBtn">↗ В чат MAX</button></div></header>
+        <header class="top"><div class="crumb"><span class="max">MAX</span><span>Олимп</span><span>›</span><b id="crumbTitle">Подборка</b></div><div class="top-actions"><button class="circle" id="searchBtn" aria-label="Поиск">⌕</button><button class="circle" id="settingsBtn" aria-label="Настройки">⚙</button><button class="bot-button" id="botBtn">✦ @olimp_bot</button></div></header>
         <div class="content">
-          <section class="course-head"><div><p class="eyebrow">Мой семестр</p><h1 id="mainTitle">Высшая математика</h1><p class="lead">Личное пространство для лекций, конспектов, материалов и дедлайнов — всё по курсу в одном месте.</p></div><div class="streak"><span>⚡</span><div><b>4 дня в ритме</b><br>1 тема до следующей пары</div></div></section>
-          <div class="tabs" role="tablist"><button class="tab active" data-view="page">Конспект</button><button class="tab" data-view="tasks">Задания <span id="taskNumber">3</span></button><button class="tab" data-view="base">База материалов</button></div>
-          <section class="view active" id="page"><div class="page-layout"><article class="card article"><div class="page-meta"><span class="pill violet">Высшая математика</span><span class="pill">Неделя 3</span><span class="pill">В работе</span></div><h2>Производная функции</h2><p>Производная показывает, как быстро меняется функция в конкретной точке. Для графика это наклон касательной — то есть мгновенная скорость изменения.</p><div class="hint"><b>✦</b><span><strong>Связь с практикой.</strong> Производные используют, когда нужно найти максимальное значение, скорость изменения или оптимальный момент.</span></div><h3>Определение</h3><p>Производная функции <em>f</em> в точке <em>x₀</em> — предел отношения приращения функции к приращению аргумента.</p><div class="formula">f′(x₀) = lim [f(x₀ + Δx) − f(x₀)] / Δx, &nbsp; Δx → 0</div><h3>Перед семинаром</h3><div class="block-list"><label><input type="checkbox" checked />Разобрать правило суммы</label><label><input type="checkbox" checked />Повторить производную степени</label><label><input type="checkbox" />Решить задачи 3.14–3.18</label></div><button class="add-block" id="addBlock">＋ Добавить свой блок</button><div id="customBlocks"></div></article>
-            <aside class="right-col"><section class="card"><div class="panel-head"><h3>Сегодня</h3><button>К расписанию →</button></div><div class="today"><div class="lesson"><span class="time">10:30</span><div><b>Высшая математика</b><small>Лекция · корпус Б, 302</small></div></div><div class="lesson"><span class="time">14:20</span><div><b>Английский B2</b><small>Практика · онлайн</small></div></div><div class="lesson"><span class="time">18:00</span><div><b>Проектная студия</b><small>Созвон команды в MAX</small></div></div></div></section><section class="card progress-card"><h3>Прогресс по курсу</h3><div class="progress-row"><span>9 из 16 тем</span><span>56%</span></div><div class="bar"><i></i></div><small>Следующая тема: «Экстремумы функций»</small></section><section class="card chat-card"><div class="chat-label">@kurs_bot · MAX</div><p>Напомню о домашнем задании за день до дедлайна и пришлю ссылку сразу на нужный конспект.</p><button id="botBtn">Открыть диалог ↗</button></section></aside></div></section>
-          <section class="view" id="tasks"><div class="task-top"><div><h2>Задания</h2><p>Все дедлайны по курсам, без поисков по чатам.</p></div><button class="new-btn" id="newTask">＋ Новое задание</button></div><div class="card tasks" id="taskList"><div class="task-row"><input type="checkbox" aria-label="Отметить выполненным" /><div class="task-name">Задачи 3.14–3.18<small>Семинар · производные</small></div><span class="course-chip">Математика</span><span class="due">до 19 сен</span><span class="status">скоро</span></div><div class="task-row"><input type="checkbox" aria-label="Отметить выполненным" /><div class="task-name">Vocabulary: Unit 4<small>15 новых слов и примеры</small></div><span class="course-chip">English B2</span><span class="due">до 20 сен</span><span class="status work">в работе</span></div><div class="task-row"><input type="checkbox" checked aria-label="Отметить выполненным" /><div class="task-name">Выбрать тему исследования<small>Проектная студия</small></div><span class="course-chip">Проект</span><span class="due">17 сен</span><span class="status done">готово</span></div></div></section>
-          <section class="view" id="base"><div class="base-top"><div><h2>База материалов</h2><p>Сохраняй ссылки, файлы и объяснения к нужной теме.</p></div><input id="materialSearch" class="search" placeholder="Поиск по материалам" /></div><div class="materials" id="materials"><button class="material"><span class="icon">∫</span><h3>Таблица производных</h3><p>Короткая шпаргалка для семинара.</p><footer>Математика · PDF</footer></button><button class="material"><span class="icon">▶</span><h3>Видео: что такое предел</h3><p>12 минут, наглядное объяснение.</p><footer>Математика · видео</footer></button><button class="material"><span class="icon">Aa</span><h3>Unit 4 — vocabulary</h3><p>Слова, карточки и примеры.</p><footer>English B2 · заметка</footer></button><button class="material"><span class="icon">✦</span><h3>Шаблон исследования</h3><p>Структура, критерии, дедлайны.</p><footer>Проект · страница</footer></button><button class="material"><span class="icon">◉</span><h3>Баухаус: кратко</h3><p>Конспект к следующей лекции.</p><footer>Дизайн · заметка</footer></button><button class="material"><span class="icon">?</span><h3>Вопросы к зачёту</h3><p>Собираются из чата группы.</p><footer>Общее · база</footer></button></div></section>
+          <section class="hero"><div><p class="eyebrow">Твой олимпийский трек</p><h1>Олимпиады, которые<br>подходят тебе</h1><p class="lead">Не ищи по десяткам сайтов: «Олимп» собирает открытые данные, сверяет их с профилем и приносит дедлайны прямо в MAX.</p></div><div class="sync"><span>↻</span><div><b id="syncTitle">Обновляем подборку</b><small id="syncMeta">Проверяем открытые источники…</small></div></div></section>
+          <section class="profile-bar"><div class="persona"><div class="persona-icon" id="personaIcon">🎒</div><div><b id="personaTitle">Школьник · 10 класс</b><small id="personaText">Математика и информатика</small></div></div><button class="quick-profile" id="quickProfile">Профиль</button><div class="switch" role="tablist"><button class="audience active" data-audience="school">Школьнику</button><button class="audience" data-audience="student">Студенту</button></div><div class="filter-chips" id="chips"><button class="chip active" data-subject="Математика">Математика</button><button class="chip active" data-subject="Информатика">Информатика</button><button class="chip" data-subject="Физика">Физика</button><button id="allSubjects">Все предметы</button><button class="chip" data-subject="all">Сбросить</button></div></section>
+          <section class="route"><span>Как искать?</span><button class="route-btn active" data-route="subjects">По предметам</button><button class="route-btn" data-route="universities">По вузу</button><button class="route-btn" data-route="materials">Материалы</button><small id="routeHint">Сначала выбираешь предмет — затем олимпиаду</small></section>
+          <section class="workspace">
+            <div>
+              <section id="subjectView"><div class="tools"><div class="result-label" id="resultLabel"><b>Подходящие олимпиады</b></div><input class="search" id="search" placeholder="Название, профиль или предмет" /></div><div class="catalog-filters" aria-label="Фильтры олимпиад"><div class="filter-group"><span>Уровень:</span><button class="catalog-filter active" type="button" data-level="all">Все</button><button class="catalog-filter" type="button" data-level="1">I</button><button class="catalog-filter" type="button" data-level="2">II</button><button class="catalog-filter" type="button" data-level="3">III</button></div><div class="filter-group"><button class="catalog-filter" type="button" id="trackedOnly">♡ В треке</button><label class="sort-label" for="olympiadSort">Сортировка</label><select id="olympiadSort" aria-label="Сортировка олимпиад"><option value="relevance">По совпадению</option><option value="level">Сначала высокий уровень</option><option value="title">По названию</option></select><button class="filter-reset" type="button" id="clearOlympiadFilters">Сбросить</button></div></div><div class="cards" id="cards"><div class="empty">Загружаем открытую витрину олимпиад…</div></div><div class="load-note" id="dataNote"></div></section>
+              <section id="universityView" class="hidden"><div class="tools"><div class="result-label"><b>Выбери вуз или площадку</b> · правила кампании 2026</div><input class="search uni-search" id="universitySearch" placeholder="Например: МФТИ, Москва или филиал" aria-label="Поиск вуза, города, региона или филиала" autocomplete="off" /></div><div class="university-filters" id="universityRegionFilters" aria-label="Фильтр площадок по региону"></div><div class="campus-filters" id="campusTypeFilters" aria-label="Фильтр площадок по типу"></div><label class="university-sort" for="universitySort">Порядок <select id="universitySort" aria-label="Сортировка площадок"><option value="name">По вузу и городу</option><option value="main-first">Сначала главные</option><option value="branch-first">Сначала филиалы</option></select></label><div class="uni-search-status" id="universitySearchStatus"></div><div class="uni-grid" id="universityChoices"></div><article class="benefit-card" id="benefitCard"><div class="verified">Загружаем проверенные правила</div></article><h2 class="uni-results-title" id="universityResultsTitle">Олимпиады по твоим предметам</h2><div id="universityMatches"></div><div class="load-note">Льготы добавляются только после проверки документа приёмной кампании конкретной площадки. Не переносим их автоматически с главного вуза на филиал.</div></section>
+              <section id="materialsView" class="hidden"><div class="materials-head"><div><h2>Материалы прошлых лет</h2><p id="materialsNote">Открытые задания, решения и демоверсии из официальных архивов — подборка по твоим предметам.</p></div><button type="button" id="showAllMaterials">Все предметы</button></div><div class="materials-list" id="materialsList"><div class="materials-empty">Загружаем официальные архивы…</div></div><div class="load-note">Материалы открываются только на сайте организатора — так ссылка и версия всегда остаются актуальными.</div></section>
+            </div>
+            <aside class="right"><section class="panel"><div class="panel-head"><h2>Мой трек <span id="trackCount"></span></h2><button id="trackCalendar">К календарю →</button></div><div class="plan" id="trackList"><div class="track-empty">Загружаем твой личный трек…</div></div></section>
+              <section class="panel"><div class="panel-head"><h2>Как это работает</h2></div><div class="process"><div class="flow"><div class="flow-node"><b>▦</b>Открытые каталоги</div><div class="flow-arrow">›</div><div class="flow-node"><b>⌘</b>Парсер и проверка</div><div class="flow-arrow">›</div><div class="flow-node"><b>✦</b>Подборка в MAX</div></div></div></section>
+              <section class="panel max-panel"><div class="max-label">@olimp_bot · MAX</div><p>Отслеживай олимпиаду — бот пришлёт дату регистрации и кнопку «Открыть источник».</p><button id="reminderBtn">Настроить напоминания ↗</button></section>
+            </aside>
+          </section>
         </div>
       </main>
     </div>
-    <dialog id="blockDialog"><form class="modal" id="blockForm"><h2>Новый блок</h2><p>Добавь свою мысль, формулу или вопрос к теме.</p><label for="blockText">Текст блока</label><textarea id="blockText" required placeholder="Например: проверить правило цепочки на следующей паре"></textarea><div class="modal-actions"><button type="button" class="cancel">Отмена</button><button class="primary" type="submit">Добавить</button></div></form></dialog>
-    <dialog id="taskDialog"><form class="modal" id="taskForm"><h2>Новое задание</h2><p>Оно появится в списке и бот напомнит о сроке.</p><label for="taskName">Что нужно сделать?</label><input id="taskName" required maxlength="80" placeholder="Например, решить задачи к семинару" /><label for="taskCourse">Курс</label><select id="taskCourse"><option>Высшая математика</option><option>История дизайна</option><option>Английский B2</option><option>Проектная студия</option></select><div class="modal-actions"><button type="button" class="cancel">Отмена</button><button class="primary" type="submit">Добавить</button></div></form></dialog>
+    <dialog id="profileDialog"><form class="modal" id="profileForm"><h2>Настроить профиль</h2><p>Класс или курс автоматически сдвигается с новым учебным годом. Если перевёлся — просто выбери актуальное значение и сохрани: это станет новой точкой отсчёта.</p><label for="type">Кто ты?</label><select id="type"><option value="school">Школьник</option><option value="student">Студент</option></select><label for="level" id="levelLabel">Класс</label><select id="level"></select><p id="academicYearHint"></p><div class="modal-actions"><button type="button" class="cancel">Отмена</button><button class="primary" type="submit">Сохранить</button></div></form></dialog>
+    <dialog id="subjectsDialog"><section class="modal"><h2>Предметы ВсОШ</h2><p>Выбери один или несколько предметов. Направления внутри информатики — программирование, робототехника, ИБ и ИИ — учитываются в общем фильтре «Информатика».</p><div class="subjects-grid" id="subjectsGrid"></div><div class="modal-actions"><button type="button" data-close-dialog>Отмена</button><button type="button" class="primary" id="applySubjects">Показать олимпиады</button></div></section></dialog>
+    <dialog id="calendarDialog"><section class="modal"><h2>Календарь трека</h2><p id="calendarIntro">Выбери олимпиады — здесь появятся их дедлайны и этапы.</p><div id="calendarList"></div><div class="modal-actions"><button type="button" data-close-dialog>Закрыть</button></div></section></dialog>
+    <dialog id="reminderDialog"><form class="modal" id="reminderForm"><h2>Напоминания от бота</h2><p>Когда появится срок регистрации, @olimp_bot напишет в личный чат.</p><label for="reminderTiming">Напоминать</label><select id="reminderTiming"><option value="7,3,1">За 7, 3 и 1 день</option><option value="7,1">За 7 и 1 день</option><option value="1">Только за 1 день</option></select><div class="modal-actions"><button type="button" data-close-dialog>Отмена</button><button class="primary" type="submit">Сохранить</button></div></form></dialog>
+    <dialog id="prepareDialog"><section class="modal"><h2>Подготовка</h2><p>Открой карточку олимпиады: там всегда есть официальный источник. В следующем шаге сюда можно добавить материалы, чек‑листы и дедлайны по этапам.</p><div class="modal-actions"><button type="button" data-close-dialog>Понятно</button></div></section></dialog>
+    <dialog id="botDialog"><section class="modal"><h2>@olimp_bot</h2><p>В настоящем MAX бот откроет этот мини‑сервис и будет отправлять напоминания. В локальном демо мы показываем тот же сценарий без реального чата.</p><div class="modal-actions"><button type="button" data-close-dialog>Закрыть</button><button type="button" class="primary" id="openReminders">Настроить напоминания</button></div></section></dialog>
     <div class="toast" id="toast"><span>✓</span><span id="toastText">Готово</span></div>
     <script>
-      const tabs=document.querySelectorAll('.tab'),views=document.querySelectorAll('.view');
-      function showView(name){tabs.forEach(t=>t.classList.toggle('active',t.dataset.view===name));views.forEach(v=>v.classList.toggle('active',v.id===name));}
-      document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
-      const toast=document.getElementById('toast'),toastText=document.getElementById('toastText');let timer;
-      function notify(message){toastText.textContent=message;toast.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>toast.classList.remove('show'),2800)}
-      document.getElementById('shareBtn').addEventListener('click',()=>notify('Конспект отправлен в учебный чат MAX.'));
-      document.getElementById('botBtn').addEventListener('click',()=>notify('В MAX откроется диалог с @kurs_bot.'));
-      document.querySelectorAll('.course').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.course').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');const name=c.dataset.course;document.getElementById('mainTitle').textContent=name;document.getElementById('crumbCourse').textContent=name;notify('Открыт курс «'+name+'».')}));
-      const blockDialog=document.getElementById('blockDialog');document.getElementById('addBlock').addEventListener('click',()=>{blockDialog.showModal();document.getElementById('blockText').focus()});
-      const taskDialog=document.getElementById('taskDialog');document.getElementById('newTask').addEventListener('click',()=>{taskDialog.showModal();document.getElementById('taskName').focus()});
-      document.querySelectorAll('.cancel').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
-      document.getElementById('blockForm').addEventListener('submit',e=>{e.preventDefault();const text=document.getElementById('blockText').value.trim();const el=document.createElement('div');el.className='added-block';el.textContent=text;document.getElementById('customBlocks').appendChild(el);blockDialog.close();e.target.reset();notify('Блок добавлен в конспект.');});
-      document.getElementById('taskForm').addEventListener('submit',e=>{e.preventDefault();const name=document.getElementById('taskName').value.trim(),course=document.getElementById('taskCourse').value;const row=document.createElement('div');row.className='task-row';row.innerHTML='<input type="checkbox" aria-label="Отметить выполненным"><div class="task-name"></div><span class="course-chip"></span><span class="due">без срока</span><span class="status">новое</span>';row.querySelector('.task-name').textContent=name;row.querySelector('.course-chip').textContent=course;document.getElementById('taskList').prepend(row);document.getElementById('taskNumber').textContent=Number(document.getElementById('taskNumber').textContent)+1;taskDialog.close();e.target.reset();notify('Задание сохранено. Бот напомнит о нём в MAX.');});
-      document.getElementById('materialSearch').addEventListener('input',e=>{const q=e.target.value.toLowerCase();document.querySelectorAll('.material').forEach(card=>card.style.display=card.innerText.toLowerCase().includes(q)?'block':'none')});
-      document.getElementById('taskList').addEventListener('change',e=>{if(e.target.matches('input[type=checkbox]'))notify(e.target.checked?'Задание отмечено как выполненное.':'Задание снова в работе.');});
+      const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);let all=[],universities=[],materials=[],audience='school',route='subjects',selectedUniversity='hse-moscow',subjects=new Set(['Математика','Информатика']),saved=new Set(['rsosh-2-2']),materialScopeAll=false,olympiadLevel='all',onlyTracked=false,olympiadSort='relevance',universityRegion='all',universityCampusType='all',universitySort='name',toastTimer;
+      function notify(text){$('#toastText').textContent=text;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),2800)}
+      function iconFor(record){if(record.audience==='student')return '✦';if(record.subject==='Математика')return '∑';if(record.subject==='Информатика')return '⌘';if(record.subject==='Физика')return '⚛';return '◈'}
+      function getResults(){const query=$('#search').value.trim().toLowerCase();return all.filter(x=>x.audience===audience).filter(x=>subjects.has('all')||subjects.size===0||subjects.has(x.subject)).filter(x=>(x.title+' '+x.subject).toLowerCase().includes(query)).slice(0,8)}
+      function levelFor(record){return record.level?'Уровень '+record.level:record.audience==='student'?'Студенческая':'Уровень не указан'}
+      function toggleTrack(record){if(saved.has(record.id)){saved.delete(record.id);notify('Олимпиада снята с отслеживания.')}else{saved.add(record.id);notify('Добавили в трек. @olimp_bot напомнит о регистрации.')}render();renderUniversities()}
+      function reasonFor(record){if(record.audience==='student')return 'Ты выбрал сценарий для студентов — эта олимпиада рассчитана на обучающихся вузов.';if(subjects.has(record.subject))return 'Совпадает с предметом твоего профиля: '+record.subject+'.';return 'Это открытая школьная олимпиада — посмотри классы и условия на первоисточнике.'}
+      function benefitFor(record){return record.audience==='student'?'Профильное состязание':'Условия и льготы — на источнике'}
+      function campusTypeFor(university){return university.campus_type||'main'}
+      function campusLabel(type){return ({main:'Главная площадка',campus:'Кампус',branch:'Филиал',online:'Онлайн-площадка'})[type]||'Площадка'}
+      function campusTitleFor(university){return university.campus_name||university.city||campusLabel(campusTypeFor(university))}
+      function hasVerifiedBenefits(university){return university.admission_status==='benefits_verified'||university.verified===true}
+      function visibleUniversities(){const query=$('#universitySearch')?.value.trim().toLowerCase()||'';const order=university=>{const type=campusTypeFor(university);if(universitySort==='main-first')return type==='main'?0:1;if(universitySort==='branch-first')return type==='branch'?0:1;return 0};return universities.filter(university=>{const region=university.region||university.city||'';const parent=university.parent_name||university.parent_university||'';const haystack=(university.name+' '+parent+' '+campusTitleFor(university)+' '+university.city+' '+region+' '+(university.country||'')+' '+campusLabel(campusTypeFor(university))).toLowerCase();return (universityRegion==='all'||region===universityRegion)&&(universityCampusType==='all'||campusTypeFor(university)===universityCampusType)&&haystack.includes(query)}).sort((left,right)=>order(left)-order(right)||left.name.localeCompare(right.name,'ru')||campusTitleFor(left).localeCompare(campusTitleFor(right),'ru'))}
+      function renderUniversityRegions(){const container=$('#universityRegionFilters');if(!container)return;const regions=[...new Set(universities.map(university=>university.region||university.city).filter(Boolean))].sort((left,right)=>left.localeCompare(right,'ru'));if(universityRegion!=='all'&&!regions.includes(universityRegion))universityRegion='all';container.replaceChildren();const select=document.createElement('select');select.id='universityRegion';select.setAttribute('aria-label','Регион площадки');[['all','Все регионы'],...regions.map(region=>[region,region])].forEach(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;select.appendChild(option)});select.value=universityRegion;select.addEventListener('change',()=>{universityRegion=select.value;renderUniversities()});container.appendChild(select)}
+      function renderCampusTypes(){const container=$('#campusTypeFilters');if(!container)return;const count=type=>type==='all'?universities.length:universities.filter(university=>campusTypeFor(university)===type).length;container.replaceChildren();[['all','Все площадки'],['main','Главные'],['campus','Кампусы'],['branch','Филиалы'],['online','Онлайн']].forEach(([value,label])=>{const button=document.createElement('button');button.type='button';button.className='university-filter';button.classList.toggle('active',universityCampusType===value);button.textContent=label+' · '+count(value);button.setAttribute('aria-label',label+': '+count(value));button.addEventListener('click',()=>{universityCampusType=value;renderCampusTypes();renderUniversities()});container.appendChild(button)})}
+      function currentConnectionUniversity(){return universities.find(item=>item.id===selectedUniversity)||universities[0]||null}
+      function setWorkspaceRoute(nextRoute){route=nextRoute;$$('.route-btn').forEach(item=>item.classList.toggle('active',item.dataset.route===route));const byUniversity=route==='universities',byMaterials=route==='materials';$('#subjectView').classList.toggle('hidden',byUniversity||byMaterials);$('#universityView').classList.toggle('hidden',!byUniversity);$('#materialsView').classList.toggle('hidden',!byMaterials);$('#routeHint').textContent=byUniversity?'Найди вуз, город или регион — затем выбери нужную площадку':byMaterials?'Архивы заданий, решений и демоверсий по предметам':'Выбери предмет, уровень и нужные олимпиады';if(byUniversity)renderUniversities();if(byMaterials)renderMaterials()}
+      function connectionNode(kind,label,title,details){const node=document.createElement('div');node.className='connection-node '+kind;const caption=document.createElement('span');caption.className='node-label';caption.textContent=label;const heading=document.createElement('b');heading.textContent=title;const copy=document.createElement('small');copy.textContent=details;node.append(caption,heading,copy);return node}
+      function renderRelations(){const list=$('#relationshipList'),select=$('#connectionUniversity'),clear=$('#clearConnectionFocus');if(!list||!select||!clear)return;select.replaceChildren();universities.forEach(university=>{const option=document.createElement('option');option.value=university.id;option.textContent=university.name;select.appendChild(option)});const university=currentConnectionUniversity();if(university)select.value=university.id;clear.classList.toggle('hidden',!relationFocusId);list.replaceChildren();if(audience==='student'){list.innerHTML='<div class="connection-empty">Для студенческих соревнований здесь появятся связи «направление → конкурс/стажировка → карьерная возможность». Вузовские льготы относятся к школьным олимпиадам.</div>';return}if(!university){list.innerHTML='<div class="connection-empty">Загружаем список вузов и правила приёма…</div>';return}const focus=relationFocusId&&all.find(record=>record.id===relationFocusId);const records=(focus?[focus]:getResults().filter(record=>record.audience==='school')).slice(0,8);if(!records.length){list.innerHTML='<div class="connection-empty">Нет олимпиад по выбранным предметам. Измени предметы или сбрось поиск.</div>';return}records.forEach(record=>{const card=document.createElement('article');card.className='connection-card';const top=document.createElement('div');top.className='connection-card-top';const title=document.createElement('b');title.textContent=record.title;const level=document.createElement('span');level.textContent=levelFor(record);top.append(title,level);const path=document.createElement('div');path.className='connection-path';const recordSubjects=Array.isArray(record.subjects)&&record.subjects.length?record.subjects:[record.subject];const selectedSubjects=subjects.has('all')?recordSubjects:recordSubjects.filter(subject=>subjects.has(subject));path.append(connectionNode('subject-node','Твой предмет',(selectedSubjects.length?selectedSubjects:[record.subject]).join(' · '),'профиль пользователя'),Object.assign(document.createElement('div'),{className:'connection-arrow',textContent:'→'}),connectionNode('olympiad-node','Олимпиада',record.profile||record.subject,(record.level_label||levelFor(record))+' · '+record.source),Object.assign(document.createElement('div'),{className:'connection-arrow',textContent:'→'}),connectionNode('university-node','Вуз',university.name,'правила приёма 2026'));const rule=document.createElement('p');rule.className='connection-rule';rule.innerHTML='<b>Что проверяем дальше:</b> профиль, уровень, статус диплома, конкурсную группу и подтверждение ЕГЭ.';const actions=document.createElement('div');actions.className='connection-actions';const state=document.createElement('span');state.className='connection-state';state.textContent='Есть маршрут для проверки, точная льгота зависит от программы';const link=document.createElement('a');link.className='connection-open';link.href=university.official_url;link.target='_blank';link.rel='noopener';link.textContent='Открыть правила '+university.name+' ↗';actions.append(state,link);card.append(top,path,rule,actions);list.appendChild(card)})}
+      function openConnectionsFor(record){relationFocusId=record.id;setWorkspaceRoute('connections')}
+      function renderMaterials(){const list=$('#materialsList'),button=$('#showAllMaterials');if(!list||!button)return;const profileHasAllSubjects=subjects.has('all')||subjects.size===0;const showAll=materialScopeAll||profileHasAllSubjects;const selected=materials.filter(material=>showAll||material.subjects.some(subject=>subjects.has(subject)));button.disabled=profileHasAllSubjects;button.textContent=profileHasAllSubjects?'Выбраны все предметы':showAll?'По моим предметам':'Все предметы';$('#materialsNote').textContent=showAll?'Открытые задания, решения и демоверсии из официальных архивов по всем предметам.':'Открытые задания, решения и демоверсии из официальных архивов по твоим предметам.';list.replaceChildren();if(!selected.length){list.innerHTML='<div class="materials-empty">Для выбранных предметов пока нет проверенных архивов. Посмотри все материалы или выбери другой предмет.</div>';return}selected.forEach(material=>{const card=document.createElement('article');card.className='material-card';const icon=document.createElement('div');icon.className='material-icon';icon.textContent='▱';const copy=document.createElement('div');copy.className='material-copy';const title=document.createElement('b');title.textContent=material.title;const details=document.createElement('p');details.textContent=material.organizer+' · '+material.years;const tags=document.createElement('div');tags.className='material-tags';material.types.forEach(type=>{const tag=document.createElement('span');tag.textContent=type;tags.appendChild(tag)});copy.append(title,details,tags);const link=document.createElement('a');link.className='material-open';link.href=material.source_url;link.target='_blank';link.rel='noopener';link.textContent='Открыть архив ↗';card.append(icon,copy,link);list.appendChild(card)});}
+      function renderTrack(){const tracked=all.filter(record=>saved.has(record.id)&&record.audience===audience),container=$('#trackList');$('#trackCount').textContent=tracked.length?'· '+tracked.length:'';container.innerHTML='';if(!tracked.length){container.innerHTML='<div class="track-empty">Здесь появятся выбранные олимпиады и все их этапы. Нажми ♡ на карточке, чтобы бот начал следить за регистрацией.</div>';return}const summary=document.createElement('p');summary.className='track-summary';summary.textContent='Бот проверяет условия на источнике и пришлёт напоминание, когда появится точный срок.';container.appendChild(summary);tracked.slice(0,3).forEach(record=>{const item=document.createElement('div');item.className='plan-item';item.innerHTML='<span class="date">⌁</span><div><b></b><small></small><span class="reminder">@olimp_bot · следим за регистрацией</span></div>';item.querySelector('b').textContent=record.title;item.querySelector('small').textContent=record.deadline_label;container.appendChild(item)});}
+      function render(){
+        const results=getResults(),cards=$('#cards');
+        $('#savedSide').textContent=saved.size;
+        $('#resultLabel').innerHTML='<b>Подходящие олимпиады</b> · '+results.length+' из '+all.filter(x=>x.audience===audience).length;
+        cards.innerHTML='';
+        renderTrack();
+        if(!results.length){cards.innerHTML='<div class="empty">Ничего не нашли. Сними часть фильтров или измени предметы.</div>';return}
+        results.forEach(r=>{
+          const card=document.createElement('article');
+          card.className='olymp-card';
+          const known=!!r.deadline;
+          card.innerHTML='<div class="card-icon"></div><div class="card-copy"><p class="card-title"></p><div class="meta"><span class="badge"></span><span class="level"></span><span class="subject"></span><span>·</span><span class="source"></span><span class="benefit"></span></div><p class="match"><b>Почему подходит:</b> <span></span></p><a class="card-source" target="_blank" rel="noopener">Открыть источник ↗</a></div><div class="deadline"></div><button class="track" aria-label="Отслеживать">♡</button>';
+          card.querySelector('.card-icon').textContent=iconFor(r);
+          card.querySelector('.card-title').textContent=r.title;
+          const badge=card.querySelector('.badge');
+          badge.textContent=r.audience==='school'?'Школьникам':'Студентам';
+          badge.classList.toggle('student',r.audience==='student');
+          card.querySelector('.level').textContent=levelFor(r);
+          card.querySelector('.subject').textContent=r.subject;
+          card.querySelector('.source').textContent=r.source;
+          card.querySelector('.benefit').textContent=benefitFor(r);
+          card.querySelector('.match span').textContent=reasonFor(r);
+          const sourceLink=card.querySelector('.card-source');
+          sourceLink.href=r.source_url||'#';
+          sourceLink.hidden=!r.source_url;
+          const deadline=card.querySelector('.deadline');
+          deadline.textContent=r.deadline_label;
+          deadline.classList.toggle('is-date',known);
+          const track=card.querySelector('.track');
+          track.classList.toggle('saved',saved.has(r.id));
+          track.textContent=saved.has(r.id)?'♥':'♡';
+          track.addEventListener('click',()=>toggleTrack(r));
+          cards.appendChild(card);
+        });
+      }
+      function renderUniversities(){
+        const choices=$('#universityChoices'),card=$('#benefitCard'),matches=$('#universityMatches'),status=$('#universitySearchStatus'),available=visibleUniversities(),query=$('#universitySearch').value.trim();
+        renderUniversityRegions();
+        renderCampusTypes();
+        if(!universities.length){choices.innerHTML='';card.innerHTML='<div class="verified">Правила приёма загружаются</div>';return}
+        const activeRegion=universityRegion==='all'?'Все регионы':universityRegion;
+        const activeCampus=universityCampusType==='all'?'Все площадки':campusLabel(universityCampusType);
+        const searchSummary=query?'Поиск «'+query+'»':'Регион: '+activeRegion;
+        status.textContent=searchSummary+' · '+activeCampus.toLowerCase()+' · найдено площадок: '+available.length;
+        if(!available.length){const message=universityCampusType==='branch'?'В каталоге пока нет филиалов по выбранному региону. Добавим площадку только после проверки официального источника.':'Ничего не нашли. Попробуй название, город, тип площадки или выбери другой регион.';choices.innerHTML='<div class="empty">'+message+'</div>';card.innerHTML='<div class="verified">Выбери площадку из результатов поиска</div>';matches.innerHTML='';$('#universityResultsTitle').textContent='Олимпиады по твоим предметам';return}
+        const university=available.find(item=>item.id===selectedUniversity)||available[0];
+        selectedUniversity=university.id;
+        choices.innerHTML='';
+        available.forEach(item=>{
+          const button=document.createElement('button');
+          button.className='uni-choice';
+          button.classList.toggle('active',item.id===selectedUniversity);
+          button.innerHTML='<b></b><small></small><span class="region"></span>';
+          button.querySelector('b').textContent=item.name+' · '+campusTitleFor(item);
+          button.querySelector('small').textContent=item.city+' · '+item.verified_label;
+          button.querySelector('.region').textContent=(item.region||item.city)+' · '+campusLabel(campusTypeFor(item));
+          button.addEventListener('click',()=>{selectedUniversity=item.id;renderUniversities()});
+          choices.appendChild(button);
+        });
+        card.innerHTML='<div class="verified"></div><h2></h2><div class="benefit-main"></div><p class="rule"></p><p class="individual"></p><a target="_blank" rel="noopener">Открыть официальные правила ↗</a>';
+        const benefitsVerified=hasVerifiedBenefits(university);
+        card.querySelector('.verified').textContent=university.verified_label;
+        card.querySelector('h2').textContent=university.name+' · '+campusTitleFor(university);
+        card.querySelector('.benefit-main').textContent=benefitsVerified?'Что может дать диплом: '+university.benefit_short:'Льготы для этой площадки ещё не подтверждены';
+        card.querySelector('.rule').textContent=benefitsVerified?university.rules:'Площадка найдена в официальном каталоге. Мы не переносим сюда льготы головного вуза, пока не найдём правила приёма и привязку к программам именно этой площадки.';
+        card.querySelector('.individual').textContent=benefitsVerified?university.individual:'Статус: '+(university.admission_status==='rules_discovered'?'правила найдены, ждут проверки':'ждём отдельный документ приёмной кампании')+'.';
+        const officialLink=card.querySelector('a');
+        officialLink.href=university.official_url;
+        officialLink.textContent=benefitsVerified?'Открыть официальные правила ↗':'Открыть официальный источник площадки ↗';
+        const selected=all.filter(record=>record.audience==='school').filter(record=>subjects.has('all')||subjects.has(record.subject)).slice(0,6);
+        $('#universityResultsTitle').textContent=benefitsVerified?'Олимпиады по твоим предметам для '+university.name+' · '+campusTitleFor(university):'Олимпиады пока не привязаны к этой площадке';
+        matches.innerHTML='';
+        if(!benefitsVerified){matches.innerHTML='<div class="empty">Сначала парсер должен найти и проверить правила приёма этой площадки. Тогда здесь появятся только подходящие олимпиады и программы.</div>';return}
+        selected.forEach(record=>{
+          const row=document.createElement('article');
+          row.className='uni-row';
+          row.innerHTML='<span class="level"></span><div class="title"><b></b><small></small></div><button></button>';
+          row.querySelector('.level').textContent=levelFor(record);
+          row.querySelector('b').textContent=record.title;
+          row.querySelector('small').textContent=(record.profile||record.subject)+' · сверить с программой вуза';
+          const action=row.querySelector('button');
+          action.textContent=saved.has(record.id)?'В треке ✓':'Отслеживать';
+          action.addEventListener('click',()=>toggleTrack(record));
+          matches.appendChild(row);
+        });
+      }
+      function universityFromApi(item){const verified=item.admission_status==='benefits_verified';const label={benefits_verified:'Льготы и правила 2026 · проверено',rules_discovered:'Правила приёма 2026 · найдены',location_verified:'Площадка · официальный каталог',candidate:'Площадка ожидает проверки'}[item.admission_status]||'Площадка · проверяется';return {id:item.location_code,university_code:item.university_code,name:item.university_name,campus_name:item.location_name,city:item.city||'—',region:item.region||item.city||'—',country:item.country||'Россия',campus_type:item.location_type,admission_status:item.admission_status,verified,verified_label:label,benefit_short:item.verified_benefits_count?'проверенные соответствия в БД':'Условия для олимпиад — по правилам вуза',rules:item.verified_policy_description||'Условия по олимпиадам опубликованы в правилах кампании. Перед подачей сверяй профиль, уровень диплома и выбранную программу.',individual:'Точные соответствия олимпиады и программы показываются только после проверки документа кампании.',official_url:item.verified_policy_source_url||item.campaign_rules_url||item.official_url,location_source_url:item.directory_url||item.official_url}}
+      async function load(){try{const [olympiadResponse,locationResponse,materialsResponse]=await Promise.all([fetch('./data/olympiads.json',{cache:'no-store'}),fetch('/api/university-locations?campaign_year=2026',{cache:'no-store'}),fetch('./data/materials.json',{cache:'no-store'})]);if(!locationResponse.ok)throw new Error('University catalogue API: '+locationResponse.status);const data=await olympiadResponse.json(),locationData=await locationResponse.json(),materialsData=await materialsResponse.json();all=data.records||[];universities=(locationData.items||[]).map(universityFromApi);materials=materialsData.materials||[];const ok=(data.sources||[]).filter(x=>x.status==='ok').length;const parentCount=new Set(universities.map(university=>university.university_code||university.name)).size;$('#sourceStatus').textContent=ok+' каталога · '+all.length+' карточки · '+parentCount+' вузов · '+universities.length+' площадки из БД';$('#syncTitle').textContent='Данные актуальны';$('#syncMeta').textContent='Олимпиады: '+ok+' источника · '+parentCount+' вузов · '+universities.length+' площадки';$('#dataNote').textContent='Уровни — из утверждённого Перечня РСОШ 2025/26. Площадки вузов загружаются из PostgreSQL; сроки и льготы всегда подтверждаются источником.';render();renderUniversities();renderMaterials()}catch(error){console.error('Olimp catalogue failed to load',error);$('#sourceStatus').textContent='Не удалось загрузить каталог из БД';$('#syncTitle').textContent='Нужна проверка источников';$('#syncMeta').textContent='Попробуй обновить страницу';$('#cards').innerHTML='<div class="empty">Не удалось загрузить каталог. Проверь соединение с сервисом.</div>';$('#universityChoices').innerHTML='<div class="empty">Каталог вузов временно недоступен.</div>'}}
+      $$('.audience').forEach(b=>b.addEventListener('click',()=>{audience=b.dataset.audience;$$('.audience').forEach(x=>x.classList.toggle('active',x===b));const student=audience==='student';$('#personaIcon').textContent=student?'🎓':'🎒';$('#personaTitle').textContent=student?'Студент · бакалавриат':'Школьник · 10 класс';$('#personaText').textContent=student?'Выбери профессиональное направление':'Математика и информатика';subjects=new Set(student?['all']:['Математика','Информатика']);$$('.chip').forEach(x=>x.classList.toggle('active',subjects.has(x.dataset.subject)));if(student&&route==='universities'){document.querySelector('[data-route="subjects"]').click()}render();renderUniversities()}));
+      $$('.chip').forEach(b=>b.addEventListener('click',()=>{const subject=b.dataset.subject;if(subject==='all'){subjects=new Set(['all'])}else{subjects.delete('all');subjects.has(subject)?subjects.delete(subject):subjects.add(subject);if(!subjects.size)subjects.add('all')}$$('.chip').forEach(x=>x.classList.toggle('active',subjects.has(x.dataset.subject)));render();renderUniversities()}));$('#search').addEventListener('input',render);$('#universitySearch').addEventListener('input',renderUniversities);$('#universitySort').addEventListener('change',event=>{universitySort=event.target.value;renderUniversities()});
+      function syncOlympiadFilters(){const school=audience==='school';if(!school)olympiadLevel='all';$$('[data-level]').forEach(button=>{const active=button.dataset.level===olympiadLevel;button.classList.toggle('active',active);button.disabled=!school&&button.dataset.level!=='all'});$('#trackedOnly').classList.toggle('active',onlyTracked);$('#olympiadSort').value=olympiadSort}
+      $$('[data-level]').forEach(button=>button.addEventListener('click',()=>{if(button.disabled)return;olympiadLevel=button.dataset.level;syncOlympiadFilters();render()}));
+      $('#trackedOnly').addEventListener('click',()=>{onlyTracked=!onlyTracked;syncOlympiadFilters();render()});
+      $('#olympiadSort').addEventListener('change',event=>{olympiadSort=event.target.value;render()});
+      $('#clearOlympiadFilters').addEventListener('click',()=>{olympiadLevel='all';onlyTracked=false;olympiadSort='relevance';$('#search').value='';syncOlympiadFilters();render();notify('Дополнительные фильтры сброшены.')});
+      $$('.audience').forEach(button=>button.addEventListener('click',()=>queueMicrotask(syncOlympiadFilters)));
+      syncOlympiadFilters();
+      $$('.route-btn').forEach(button=>button.addEventListener('click',()=>setWorkspaceRoute(button.dataset.route)));
+      $('#refreshBtn').addEventListener('click',()=>{notify('Снимок обновлён: парсер проверил 2 источника.');load()});$('#showAllMaterials').addEventListener('click',()=>{materialScopeAll=!materialScopeAll;renderMaterials()});$('#botBtn').addEventListener('click',()=>notify('В MAX откроется диалог с @olimp_bot.'));$('#reminderBtn').addEventListener('click',()=>notify('Напоминания: за 7, 3 и 1 день до дедлайна.'));$('#trackCalendar').addEventListener('click',()=>notify(saved.size?'В календаре появятся этапы отслеживаемых олимпиад.':'Сначала добавь олимпиаду в личный трек.'));
+      const dialog=$('#profileDialog');$('#editProfile').addEventListener('click',()=>dialog.showModal());$('#profileForm').addEventListener('submit',e=>{e.preventDefault();const type=$('#type').value;dialog.close();if(type!==audience){document.querySelector('[data-audience="'+type+'"]').click()}notify('Профиль сохранён. Подборка обновлена.');});$('.cancel').addEventListener('click',()=>dialog.close());load();
+    </script>
+    <script>
+      (() => {
+        const storageKey='olimp:demo-state:v1';
+        let savedView=false;
+        const byTitle=title=>all.find(item=>item.title===title);
+        const state=(()=>{try{return JSON.parse(localStorage.getItem(storageKey)||'{}')}catch{return {}}})();
+        if(Array.isArray(state.tracked)){saved.clear();state.tracked.forEach(id=>saved.add(id));}
+        if(state.reminderTiming)$('#reminderTiming').value=state.reminderTiming;
+        const store=()=>localStorage.setItem(storageKey,JSON.stringify({tracked:[...saved],reminderTiming:$('#reminderTiming').value,profile:{audience,level:$('#level').value}}));
+        const setActiveNav=action=>{
+          $$('.nav [data-action],.rail [data-action]').forEach(button=>button.classList.toggle('active',button.dataset.action===action));
+          $('#crumbTitle').textContent=({feed:'Подборка',tracked:'Мой трек',calendar:'Календарь',prepare:'Материалы прошлых лет',search:'Поиск',reminders:'Напоминания'})[action]||'Подборка';
+        };
+        const showAllCards=()=>{
+          savedView=false;
+          $$('#cards .olymp-card').forEach(card=>card.classList.remove('hidden'));
+          render();
+        };
+        const openSubjectWorkspace=()=>{
+          route='subjects';
+          $$('.route-btn').forEach(button=>button.classList.toggle('active',button.dataset.route==='subjects'));
+          $('#subjectView').classList.remove('hidden');
+          $('#universityView').classList.add('hidden');
+          $('#materialsView').classList.add('hidden');
+          $('#routeHint').textContent='Сначала выбираешь предмет — затем олимпиаду';
+        };
+        const openMaterialsWorkspace=()=>{
+          route='materials';
+          $$('.route-btn').forEach(button=>button.classList.toggle('active',button.dataset.route==='materials'));
+          $('#subjectView').classList.add('hidden');
+          $('#universityView').classList.add('hidden');
+          $('#materialsView').classList.remove('hidden');
+          $('#routeHint').textContent='Архивы заданий, решений и демоверсий по предметам';
+          renderMaterials();
+        };
+        const applyTrackedFilter=()=>{
+          $$('#cards .olymp-card').forEach(card=>{
+            const record=byTitle(card.querySelector('.card-title')?.textContent||'');
+            card.classList.toggle('hidden',!record||!saved.has(record.id));
+          });
+          const count=[...saved].filter(id=>all.some(item=>item.id===id&&item.audience===audience)).length;
+          $('#resultLabel').innerHTML='<b>Отслеживаю</b> · '+count+' олимпиад';
+          if(!count)$('#cards').innerHTML='<div class="empty">Тут пока пусто. Нажми ♡ на карточке — и олимпиада появится в твоём календаре.</div>';
+        };
+        const showTrackedCards=()=>{
+          savedView=true;
+          render();
+          applyTrackedFilter();
+        };
+        const openCalendar=()=>{
+          const records=all.filter(record=>saved.has(record.id));
+          const list=$('#calendarList');
+          list.innerHTML='';
+          $('#calendarIntro').textContent=records.length?'Бот напомнит о регистрации и покажет ссылку на официальный источник.':'Пока нет олимпиад в треке — вернись в подборку и нажми ♡.';
+          records.forEach(record=>{
+            const row=document.createElement('article');
+            row.className='plan-item';
+            row.innerHTML='<span class="date">⌁</span><div><b></b><small></small><span class="reminder">@olimp_bot · напоминание включено</span></div>';
+            row.querySelector('b').textContent=record.title;
+            row.querySelector('small').textContent=record.deadline_label||'Срок уточняется у организатора';
+            list.appendChild(row);
+          });
+          $('#calendarDialog').showModal();
+        };
+        const act=action=>{
+          setActiveNav(action);
+          if(action==='feed'){openSubjectWorkspace();showAllCards();$('#subjectView').scrollIntoView({behavior:'smooth',block:'start'});}
+          if(action==='tracked'){openSubjectWorkspace();showTrackedCards();$('#subjectView').scrollIntoView({behavior:'smooth',block:'start'});}
+          if(action==='search'){openSubjectWorkspace();showAllCards();$('#search').focus();}
+          if(action==='calendar')openCalendar();
+          if(action==='prepare'){openMaterialsWorkspace();$('#materialsView').scrollIntoView({behavior:'smooth',block:'start'});}
+          if(action==='reminders')$('#reminderDialog').showModal();
+        };
+        $$('[data-action]').forEach(button=>button.addEventListener('click',()=>act(button.dataset.action)));
+        $$('.route-btn').forEach(button=>button.addEventListener('click',()=>{
+          const isMaterials=button.dataset.route==='materials';
+          $('#materialsView').classList.toggle('hidden',!isMaterials);
+          setActiveNav(isMaterials?'prepare':'feed');
+          if(isMaterials)renderMaterials();
+        }));
+        $('#searchBtn').addEventListener('click',()=>act('search'));
+        $('#settingsBtn').addEventListener('click',()=>$('#profileDialog').showModal());
+        $('#botBtn').addEventListener('click',()=>$('#botDialog').showModal());
+        $('#trackCalendar').addEventListener('click',()=>{setActiveNav('calendar');openCalendar();});
+        $('#reminderBtn').addEventListener('click',()=>{setActiveNav('reminders');$('#reminderDialog').showModal();});
+        $('#openReminders').addEventListener('click',()=>{ $('#botDialog').close();$('#reminderDialog').showModal(); });
+        $$('[data-close-dialog]').forEach(button=>button.addEventListener('click',()=>button.closest('dialog').close()));
+        $('#reminderForm').addEventListener('submit',event=>{event.preventDefault();store();$('#reminderDialog').close();notify('Напоминания сохранены — бот напишет в нужные дни.');});
+        $('#profileForm').addEventListener('submit',()=>{
+          store();
+          const level=$('#level').value;
+          $('#personaTitle').textContent=(audience==='student'?'Студент':'Школьник')+' · '+level;
+        });
+        document.addEventListener('click',event=>{
+          const track=event.target.closest('.track');
+          if(track)queueMicrotask(()=>{store();if(savedView)showTrackedCards();});
+        });
+        $('#cards').addEventListener('click',event=>{
+          if(event.target.closest('.track,.card-source'))return;
+          const card=event.target.closest('.olymp-card');
+          const record=card&&byTitle(card.querySelector('.card-title')?.textContent||'');
+          if(!record?.source_url)return;
+          if(window.WebApp?.openLink)window.WebApp.openLink(record.source_url);
+          else window.open(record.source_url,'_blank','noopener');
+        });
+        const updateScopeNote=()=>{
+          $('#dataNote').textContent=audience==='school'
+            ?'Все профили утверждённого Перечня РСОШ 2025/26. Сроки и льготы всегда подтверждаются ссылкой на первоисточник.'
+            :'Все опубликованные направления «Я — профессионал» текущего сезона. Сроки — на официальной странице каждого направления.';
+        };
+        $$('.audience').forEach(button=>button.addEventListener('click',updateScopeNote));
+        const originalRender=render;
+        render=function(){originalRender();if(savedView)applyTrackedFilter();};
+        setTimeout(()=>{
+          updateScopeNote();
+          if(saved.size)render();
+          if(new URLSearchParams(window.location.search).get('v')==='materials')act('prepare');
+        },0);
+      })();
+    </script>
+    <script>
+      (() => {
+        const educationKey='olimp:education-profile:v1';
+        const currentAcademicYear=()=>{
+          const date=new Date();
+          return date.getMonth()>=8?date.getFullYear():date.getFullYear()-1;
+        };
+        const readEducation=()=>{
+          try{
+            const stored=JSON.parse(localStorage.getItem(educationKey)||'null');
+            if(stored&&['school','student'].includes(stored.audience)&&Number.isInteger(stored.baseAcademicYear))return stored;
+          }catch{}
+          return {audience:'school',baseLevel:10,baseAcademicYear:currentAcademicYear()};
+        };
+        let education=readEducation();
+        const levelAt=(profile=education,year=currentAcademicYear())=>{
+          if(profile.baseLevel===null)return 'Выпускник';
+          const level=profile.baseLevel+Math.max(0,year-profile.baseAcademicYear);
+          if(profile.audience==='school')return level>11?'Выпускник':level+' класс';
+          return level>=6?'6+ курс':level+' курс';
+        };
+        const levelValue=(profile=education)=>{
+          if(profile.baseLevel===null)return 'graduate';
+          const level=profile.baseLevel+Math.max(0,currentAcademicYear()-profile.baseAcademicYear);
+          return (profile.audience==='school'?'school:':'student:')+(profile.audience==='student'&&level>=6?6:level);
+        };
+        const fillLevels=(kind,selected)=>{
+          const select=$('#level');
+          select.replaceChildren();
+          $('#levelLabel').textContent=kind==='school'?'Класс':'Курс';
+          const values=kind==='school'?[5,6,7,8,9,10,11]:[1,2,3,4,5,6];
+          values.forEach(value=>{
+            const option=document.createElement('option');
+            option.value=(kind==='school'?'school:':'student:')+value;
+            option.textContent=kind==='school'?value+' класс':(value===6?'6+ курс':value+' курс');
+            select.appendChild(option);
+          });
+          if(kind==='school'){
+            const option=document.createElement('option');
+            option.value='graduate';
+            option.textContent='Выпускник';
+            select.appendChild(option);
+          }
+          select.value=selected&&[...select.options].some(option=>option.value===selected)?selected:select.options[0].value;
+        };
+        const applyEducation=()=>{
+          const level=levelAt();
+          const school=education.audience==='school';
+          $('#profileRole').textContent=(school?'🎒 Школьник':'🎓 Студент');
+          $('#profileLevel').textContent=level+' · Москва';
+          $('#personaIcon').textContent=school?'🎒':'🎓';
+          $('#personaTitle').textContent=(school?'Школьник':'Студент')+' · '+level;
+          $('#personaText').textContent=school?'Математика и информатика':'Выбери профессиональное направление';
+          $('#academicYearHint').textContent='Учебный год '+currentAcademicYear()+'/'+String(currentAcademicYear()+1).slice(-2)+' · изменение вручную перезапустит отсчёт.';
+        };
+        const prepareEducationEditor=()=>{
+          $('#type').value=education.audience;
+          fillLevels(education.audience,levelValue());
+          applyEducation();
+        };
+        $('#editProfile').addEventListener('click',prepareEducationEditor);
+        $('#settingsBtn').addEventListener('click',prepareEducationEditor);
+        $('#quickProfile').addEventListener('click',()=>{prepareEducationEditor();$('#profileDialog').showModal();});
+        $('#type').addEventListener('change',event=>fillLevels(event.target.value));
+        $('#profileForm').addEventListener('submit',()=>{
+          const kind=$('#type').value;
+          const choice=$('#level').value;
+          education={
+            audience:kind,
+            baseLevel:choice==='graduate'?null:Number(choice.split(':')[1]),
+            baseAcademicYear:currentAcademicYear(),
+          };
+          localStorage.setItem(educationKey,JSON.stringify(education));
+          if(audience!==kind)document.querySelector('[data-audience="'+kind+'"]').click();
+          applyEducation();
+          notify('Профиль сохранён. '+levelAt()+' будет автоматически обновлён в новом учебном году.');
+        });
+        applyEducation();
+      })();
+    </script>
+    <script>
+      (() => {
+        const vsoshSubjects=[
+          'Английский язык','Астрономия','Биология','География','Информатика',
+          'Искусство (МХК)','Испанский язык','История','Итальянский язык','Китайский язык',
+          'Литература','Математика','Немецкий язык','ОБЗР','Обществознание','Право',
+          'Русский язык','Труд (технология)','Физика','Физическая культура','Французский язык',
+          'Химия','Экология','Экономика'
+        ];
+        const subjectStorageKey='olimp:vsosh-subjects:v1';
+        const recordSubjects=record=>Array.isArray(record.subjects)&&record.subjects.length?record.subjects:[record.subject];
+        const matchesSubjects=record=>subjects.has('all')||subjects.size===0||recordSubjects(record).some(subject=>subjects.has(subject));
+        try{
+          const savedSubjects=JSON.parse(localStorage.getItem(subjectStorageKey)||'[]');
+          if(Array.isArray(savedSubjects)&&savedSubjects.length){subjects=new Set(savedSubjects.filter(subject=>subject==='all'||vsoshSubjects.includes(subject)));}
+        }catch{}
+        const persistSubjects=()=>localStorage.setItem(subjectStorageKey,JSON.stringify([...subjects]));
+        const updateSubjectSummary=()=>{
+          const button=$('#allSubjects');
+          const count=subjects.has('all')||subjects.size===0?vsoshSubjects.length:subjects.size;
+          button.textContent=count===vsoshSubjects.length?'Все предметы':'Предметы · '+count;
+          $$('.chip').forEach(chip=>chip.classList.toggle('active',subjects.has(chip.dataset.subject)));
+        };
+        const drawSubjectGrid=()=>{
+          const grid=$('#subjectsGrid');
+          grid.replaceChildren();
+          vsoshSubjects.forEach(subject=>{
+            const button=document.createElement('button');
+            button.type='button';
+            button.className='subject-option';
+            button.classList.toggle('active',subjects.has('all')||subjects.has(subject));
+            button.textContent=subject;
+            button.addEventListener('click',()=>{
+              subjects.delete('all');
+              subjects.has(subject)?subjects.delete(subject):subjects.add(subject);
+              drawSubjectGrid();
+            });
+            grid.appendChild(button);
+          });
+        };
+        const originalGetResults=getResults;
+        getResults=function(){
+          const query=$('#search').value.trim().toLowerCase();
+          const items=all.filter(record=>record.audience===audience)
+            .filter(matchesSubjects)
+            .filter(record=>olympiadLevel==='all'||String(record.level)===olympiadLevel)
+            .filter(record=>!onlyTracked||saved.has(record.id))
+            .filter(record=>(record.title+' '+(record.profile||'')+' '+recordSubjects(record).join(' ')+' '+(record.kind||'')).toLowerCase().includes(query));
+          items.sort((left,right)=>{
+            if(olympiadSort==='title')return left.title.localeCompare(right.title,'ru');
+            if(olympiadSort==='level')return Number(left.level||9)-Number(right.level||9)||left.title.localeCompare(right.title,'ru');
+            const leftHits=recordSubjects(left).filter(subject=>subjects.has(subject)).length;
+            const rightHits=recordSubjects(right).filter(subject=>subjects.has(subject)).length;
+            return rightHits-leftHits||Number(left.level||9)-Number(right.level||9)||left.title.localeCompare(right.title,'ru');
+          });
+          return items.slice(0,20);
+        };
+        reasonFor=function(record){
+          if(record.audience==='student')return 'Ты выбрал сценарий для студентов — эта олимпиада рассчитана на обучающихся вузов.';
+          if(subjects.has('all')||subjects.size===0)return 'Показываем все предметы — уточни профиль, чтобы сузить подборку.';
+          const hit=recordSubjects(record).find(subject=>subjects.has(subject));
+          return hit?'Совпадает с предметом твоего профиля: '+hit+'.':'Это открытая школьная олимпиада — посмотри классы и условия на первоисточнике.';
+        };
+        const originalUniversityRender=renderUniversities;
+        renderUniversities=function(){
+          originalUniversityRender();
+          const available=visibleUniversities();
+          if(route!=='universities'||!available.length)return;
+          const university=available.find(item=>item.id===selectedUniversity)||available[0];
+          if(!hasVerifiedBenefits(university))return;
+          const matches=$('#universityMatches');
+          const selected=all.filter(record=>record.audience==='school').filter(matchesSubjects).slice(0,6);
+          $('#universityResultsTitle').textContent='Олимпиады по твоим предметам для '+university.name+' · '+campusTitleFor(university);
+          matches.replaceChildren();
+          selected.forEach(record=>{
+            const row=document.createElement('article');
+            row.className='uni-row';
+            row.innerHTML='<span class="level"></span><div class="title"><b></b><small></small></div><button></button>';
+            row.querySelector('.level').textContent=levelFor(record);
+            row.querySelector('b').textContent=record.title;
+            row.querySelector('small').textContent=(record.profile||record.subject)+' · сверить с программой вуза';
+            const action=row.querySelector('button');
+            action.textContent=saved.has(record.id)?'В треке ✓':'Отслеживать';
+            action.addEventListener('click',()=>toggleTrack(record));
+            matches.appendChild(row);
+          });
+        };
+        $('#allSubjects').addEventListener('click',()=>{drawSubjectGrid();$('#subjectsDialog').showModal();});
+        $('#applySubjects').addEventListener('click',()=>{
+          persistSubjects();
+          updateSubjectSummary();
+          $('#subjectsDialog').close();
+          render();
+          renderUniversities();
+          renderMaterials();
+        });
+        $$('.chip').forEach(chip=>chip.addEventListener('click',()=>{
+          queueMicrotask(()=>{persistSubjects();updateSubjectSummary();renderMaterials();});
+        }));
+        $$('.audience').forEach(button=>button.addEventListener('click',()=>queueMicrotask(()=>{updateSubjectSummary();renderMaterials();})));
+        updateSubjectSummary();
+        setTimeout(()=>{updateSubjectSummary();if(all.length)render();renderMaterials();},0);
+      })();
     </script>
   </body>
 </html>

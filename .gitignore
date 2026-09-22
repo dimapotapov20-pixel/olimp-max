@@ -1,0 +1,4 @@
+parser/snapshots/
+dist/data/admission-candidates.json
+**/__pycache__/
+*.py[cod]

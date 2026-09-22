@@ -1,0 +1,66 @@
+name: olimp
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-olimp}
+      POSTGRES_USER: ${POSTGRES_USER:-olimp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-olimp}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - olimp-postgres:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-olimp}:${POSTGRES_PASSWORD:-olimp}@postgres:5432/${POSTGRES_DB:-olimp}
+      MAX_BOT_TOKEN: ${MAX_BOT_TOKEN:-local-development-token}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  admission-crawler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: crawler
+    command:
+      - /bin/sh
+      - -c
+      - |
+        while true; do
+          echo "[$$(date -Iseconds)] Starting daily catalogue refresh"
+          python parser/load_university_locations.py || echo "Location catalogue refresh failed; keeping the last verified catalogue."
+          python parser/crawl_admission_rules.py --limit "$${ADMISSION_CRAWLER_LIMIT:-100}" || echo "Admission rules crawl failed; retrying on the next scheduled run."
+          echo "[$$(date -Iseconds)] Daily catalogue refresh finished; next run in 24 hours"
+          sleep "$${CATALOG_REFRESH_SECONDS:-86400}"
+        done
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-olimp}:${POSTGRES_PASSWORD:-olimp}@postgres:5432/${POSTGRES_DB:-olimp}
+      # Defaults to once a day. Only lower this value for local development.
+      CATALOG_REFRESH_SECONDS: ${CATALOG_REFRESH_SECONDS:-86400}
+      ADMISSION_CRAWLER_LIMIT: ${ADMISSION_CRAWLER_LIMIT:-100}
+    volumes:
+      - olimp-admission-snapshots:/app/parser/snapshots
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  olimp-postgres:
+  olimp-admission-snapshots:
