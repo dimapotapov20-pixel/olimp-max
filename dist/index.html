@@ -80,10 +80,10 @@
     <dialog id="botDialog"><section class="modal"><h2>@olimp_bot</h2><p>В настоящем MAX бот откроет этот мини‑сервис и будет отправлять напоминания. В локальном демо мы показываем тот же сценарий без реального чата.</p><div class="modal-actions"><button type="button" data-close-dialog>Закрыть</button><button type="button" class="primary" id="openReminders">Настроить напоминания</button></div></section></dialog>
     <div class="toast" id="toast"><span>✓</span><span id="toastText">Готово</span></div>
     <script>
-      const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);let all=[],universities=[],materials=[],audience='school',route='subjects',selectedUniversity='hse-moscow',subjects=new Set(['Математика','Информатика']),saved=new Set(['rsosh-2-2']),materialScopeAll=false,olympiadLevel='all',onlyTracked=false,olympiadSort='relevance',universityRegion='all',universityCampusType='all',universitySort='name',toastTimer;
+      const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);let all=[],universities=[],materials=[],audience='school',route='subjects',selectedUniversity='hse-moscow',subjects=new Set(['Математика','Информатика']),saved=new Set(['rsosh-2-2']),materialScopeAll=false,olympiadLevel='all',onlyTracked=false,olympiadSort='relevance',universityRegion='all',universityCampusType='all',universitySort='name',resultTotal=0,toastTimer;
       function notify(text){$('#toastText').textContent=text;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),2800)}
       function iconFor(record){if(record.audience==='student')return '✦';if(record.subject==='Математика')return '∑';if(record.subject==='Информатика')return '⌘';if(record.subject==='Физика')return '⚛';return '◈'}
-      function getResults(){const query=$('#search').value.trim().toLowerCase();return all.filter(x=>x.audience===audience).filter(x=>subjects.has('all')||subjects.size===0||subjects.has(x.subject)).filter(x=>(x.title+' '+x.subject).toLowerCase().includes(query)).slice(0,8)}
+      function getResults(){const query=$('#search').value.trim().toLowerCase();const items=all.filter(x=>x.audience===audience).filter(x=>subjects.has('all')||subjects.size===0||subjects.has(x.subject)).filter(x=>(x.title+' '+x.subject).toLowerCase().includes(query));resultTotal=items.length;return items.slice(0,8)}
       function levelFor(record){return record.level?'Уровень '+record.level:record.audience==='student'?'Студенческая':'Уровень не указан'}
       function toggleTrack(record){if(saved.has(record.id)){saved.delete(record.id);notify('Олимпиада снята с отслеживания.')}else{saved.add(record.id);notify('Добавили в трек. @olimp_bot напомнит о регистрации.')}render();renderUniversities()}
       function reasonFor(record){if(record.audience==='student')return 'Ты выбрал сценарий для студентов — эта олимпиада рассчитана на обучающихся вузов.';if(subjects.has(record.subject))return 'Совпадает с предметом твоего профиля: '+record.subject+'.';return 'Это открытая школьная олимпиада — посмотри классы и условия на первоисточнике.'}
@@ -105,7 +105,8 @@
       function render(){
         const results=getResults(),cards=$('#cards');
         $('#savedSide').textContent=saved.size;
-        $('#resultLabel').innerHTML='<b>Подходящие олимпиады</b> · '+results.length+' из '+all.filter(x=>x.audience===audience).length;
+        const visibleNote=resultTotal>results.length?' · показаны первые '+results.length:'';
+        $('#resultLabel').innerHTML='<b>Подходящие олимпиады</b> · '+resultTotal+' найдено'+visibleNote;
         cards.innerHTML='';
         renderTrack();
         if(!results.length){cards.innerHTML='<div class="empty">Ничего не нашли. Сними часть фильтров или измени предметы.</div>';return}
@@ -459,6 +460,7 @@
             const rightHits=recordSubjects(right).filter(subject=>subjects.has(subject)).length;
             return rightHits-leftHits||Number(left.level||9)-Number(right.level||9)||left.title.localeCompare(right.title,'ru');
           });
+          resultTotal=items.length;
           return items.slice(0,20);
         };
         reasonFor=function(record){
