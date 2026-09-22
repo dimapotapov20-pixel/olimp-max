@@ -72,7 +72,7 @@
       </main>
     </div>
     <dialog id="profileDialog"><form class="modal" id="profileForm"><h2>Настроить профиль</h2><p>Класс или курс автоматически сдвигается с новым учебным годом. Если перевёлся — просто выбери актуальное значение и сохрани: это станет новой точкой отсчёта.</p><label for="type">Кто ты?</label><select id="type"><option value="school">Школьник</option><option value="student">Студент</option></select><label for="level" id="levelLabel">Класс</label><select id="level"></select><p id="academicYearHint"></p><div class="modal-actions"><button type="button" class="cancel">Отмена</button><button class="primary" type="submit">Сохранить</button></div></form></dialog>
-    <dialog id="subjectsDialog"><section class="modal"><h2>Предметы ВсОШ</h2><p>Выбери один или несколько предметов. Направления внутри информатики — программирование, робототехника, ИБ и ИИ — учитываются в общем фильтре «Информатика».</p><div class="subjects-grid" id="subjectsGrid"></div><div class="modal-actions"><button type="button" data-close-dialog>Отмена</button><button type="button" class="primary" id="applySubjects">Показать олимпиады</button></div></section></dialog>
+    <dialog id="subjectsDialog"><section class="modal"><h2 id="subjectsDialogTitle">Предметы ВсОШ</h2><p id="subjectsDialogDescription">Выбери один или несколько предметов. Направления внутри информатики — программирование, робототехника, ИБ и ИИ — учитываются в общем фильтре «Информатика».</p><div class="subjects-grid" id="subjectsGrid"></div><div class="modal-actions"><button type="button" data-close-dialog>Отмена</button><button type="button" class="primary" id="applySubjects">Показать олимпиады</button></div></section></dialog>
     <dialog id="calendarDialog"><section class="modal"><h2>Календарь трека</h2><p id="calendarIntro">Выбери олимпиады — здесь появятся их дедлайны и этапы.</p><div id="calendarList"></div><div class="modal-actions"><button type="button" data-close-dialog>Закрыть</button></div></section></dialog>
     <dialog id="reminderDialog"><form class="modal" id="reminderForm"><h2>Напоминания от бота</h2><p>Когда появится срок регистрации, @olimp_bot напишет в личный чат.</p><label for="reminderTiming">Напоминать</label><select id="reminderTiming"><option value="7,3,1">За 7, 3 и 1 день</option><option value="7,1">За 7 и 1 день</option><option value="1">Только за 1 день</option></select><div class="modal-actions"><button type="button" data-close-dialog>Отмена</button><button class="primary" type="submit">Сохранить</button></div></form></dialog>
     <dialog id="prepareDialog"><section class="modal"><h2>Подготовка</h2><p>Открой карточку олимпиады: там всегда есть официальный источник. В следующем шаге сюда можно добавить материалы, чек‑листы и дедлайны по этапам.</p><div class="modal-actions"><button type="button" data-close-dialog>Понятно</button></div></section></dialog>
@@ -413,57 +413,79 @@
           'Русский язык','Труд (технология)','Физика','Физическая культура','Французский язык',
           'Химия','Экология','Экономика'
         ];
-        const subjectStorageKey='olimp:vsosh-subjects:v1';
+        const schoolStorageKey='olimp:school-subjects:v2';
+        const studentStorageKey='olimp:student-directions:v2';
         const recordSubjects=record=>Array.isArray(record.subjects)&&record.subjects.length?record.subjects:[record.subject];
-        const matchesSubjects=record=>subjects.has('all')||subjects.size===0||recordSubjects(record).some(subject=>subjects.has(subject));
-        try{
-          const savedSubjects=JSON.parse(localStorage.getItem(subjectStorageKey)||'[]');
-          if(Array.isArray(savedSubjects)&&savedSubjects.length){subjects=new Set(savedSubjects.filter(subject=>subject==='all'||vsoshSubjects.includes(subject)));}
-        }catch{}
-        const persistSubjects=()=>localStorage.setItem(subjectStorageKey,JSON.stringify([...subjects]));
-        const updateSubjectSummary=()=>{
-          const button=$('#allSubjects');
-          const count=subjects.has('all')||subjects.size===0?vsoshSubjects.length:subjects.size;
-          button.textContent=count===vsoshSubjects.length?'Все предметы':'Предметы · '+count;
-          $$('.chip').forEach(chip=>chip.classList.toggle('active',subjects.has(chip.dataset.subject)));
+        const studentDirection=record=>record.subject_detail||record.profile||record.title;
+        const availableStudentDirections=()=>[...new Set(all.filter(record=>record.audience==='student').map(studentDirection).filter(Boolean))].sort((left,right)=>left.localeCompare(right,'ru'));
+        const optionsForAudience=()=>audience==='student'?availableStudentDirections():vsoshSubjects;
+        const storageKeyForAudience=()=>audience==='student'?studentStorageKey:schoolStorageKey;
+        const matchesSubjects=record=>{
+          if(subjects.has('all')||subjects.size===0)return true;
+          return audience==='student'?subjects.has(studentDirection(record)):recordSubjects(record).some(subject=>subjects.has(subject));
+        };
+        const restoreSelection=()=>{
+          const options=optionsForAudience();
+          try{
+            const stored=JSON.parse(localStorage.getItem(storageKeyForAudience())||'[]');
+            if(Array.isArray(stored)&&stored.length){
+              const valid=stored.filter(item=>item==='all'||options.includes(item));
+              subjects=new Set(valid.length?valid:['all']);
+              return;
+            }
+          }catch{}
+          subjects=new Set(audience==='student'?['all']:['Математика','Информатика']);
+        };
+        const persistSelection=()=>localStorage.setItem(storageKeyForAudience(),JSON.stringify([...subjects]));
+        const renderSubjectControls=()=>{
+          const student=audience==='student';
+          const options=optionsForAudience();
+          const count=subjects.has('all')||subjects.size===0?options.length:subjects.size;
+          $('#allSubjects').textContent=student?(count===options.length?'Все направления':'Направления · '+count):(count===options.length?'Все предметы':'Предметы · '+count);
+          $$('.chip').forEach(chip=>{
+            chip.hidden=student;
+            chip.classList.toggle('active',subjects.has(chip.dataset.subject));
+          });
+          $('#subjectsDialogTitle').textContent=student?'Направления «Я — профессионал»':'Предметы ВсОШ';
+          $('#subjectsDialogDescription').textContent=student?'Выбери одно или несколько направлений. Это отдельный каталог для студентов: он не смешивается с предметами школьных олимпиад.':'Выбери один или несколько предметов. Направления внутри информатики — программирование, робототехника, ИБ и ИИ — учитываются в общем фильтре «Информатика».';
         };
         const drawSubjectGrid=()=>{
           const grid=$('#subjectsGrid');
           grid.replaceChildren();
-          vsoshSubjects.forEach(subject=>{
+          optionsForAudience().forEach(option=>{
             const button=document.createElement('button');
             button.type='button';
             button.className='subject-option';
-            button.classList.toggle('active',subjects.has('all')||subjects.has(subject));
-            button.textContent=subject;
+            button.classList.toggle('active',subjects.has('all')||subjects.has(option));
+            button.textContent=option;
             button.addEventListener('click',()=>{
               subjects.delete('all');
-              subjects.has(subject)?subjects.delete(subject):subjects.add(subject);
+              subjects.has(option)?subjects.delete(option):subjects.add(option);
+              if(!subjects.size)subjects.add('all');
               drawSubjectGrid();
             });
             grid.appendChild(button);
           });
         };
-        const originalGetResults=getResults;
         getResults=function(){
           const query=$('#search').value.trim().toLowerCase();
           const items=all.filter(record=>record.audience===audience)
             .filter(matchesSubjects)
             .filter(record=>olympiadLevel==='all'||String(record.level)===olympiadLevel)
             .filter(record=>!onlyTracked||saved.has(record.id))
-            .filter(record=>(record.title+' '+(record.profile||'')+' '+recordSubjects(record).join(' ')+' '+(record.kind||'')).toLowerCase().includes(query));
+            .filter(record=>(record.title+' '+(record.profile||'')+' '+recordSubjects(record).join(' ')+' '+studentDirection(record)+' '+(record.kind||'')).toLowerCase().includes(query));
           items.sort((left,right)=>{
             if(olympiadSort==='title')return left.title.localeCompare(right.title,'ru');
             if(olympiadSort==='level')return Number(left.level||9)-Number(right.level||9)||left.title.localeCompare(right.title,'ru');
-            const leftHits=recordSubjects(left).filter(subject=>subjects.has(subject)).length;
-            const rightHits=recordSubjects(right).filter(subject=>subjects.has(subject)).length;
+            const leftHits=audience==='student'?Number(subjects.has(studentDirection(left))):recordSubjects(left).filter(subject=>subjects.has(subject)).length;
+            const rightHits=audience==='student'?Number(subjects.has(studentDirection(right))):recordSubjects(right).filter(subject=>subjects.has(subject)).length;
             return rightHits-leftHits||Number(left.level||9)-Number(right.level||9)||left.title.localeCompare(right.title,'ru');
           });
           resultTotal=items.length;
           return items.slice(0,20);
         };
         reasonFor=function(record){
-          if(record.audience==='student')return 'Ты выбрал сценарий для студентов — эта олимпиада рассчитана на обучающихся вузов.';
+          if(record.audience==='student')return subjects.has('all')||subjects.size===0?'Показываем все направления «Я — профессионал» — выбери свои, чтобы сузить подборку.':'Совпадает с выбранным направлением: '+studentDirection(record)+'.';
           if(subjects.has('all')||subjects.size===0)return 'Показываем все предметы — уточни профиль, чтобы сузить подборку.';
           const hit=recordSubjects(record).find(subject=>subjects.has(subject));
           return hit?'Совпадает с предметом твоего профиля: '+hit+'.':'Это открытая школьная олимпиада — посмотри классы и условия на первоисточнике.';
@@ -472,7 +494,7 @@
         renderUniversities=function(){
           originalUniversityRender();
           const available=visibleUniversities();
-          if(route!=='universities'||!available.length)return;
+          if(route!=='universities'||audience==='student'||!available.length)return;
           const university=available.find(item=>item.id===selectedUniversity)||available[0];
           if(!hasVerifiedBenefits(university))return;
           const matches=$('#universityMatches');
@@ -494,19 +516,26 @@
         };
         $('#allSubjects').addEventListener('click',()=>{drawSubjectGrid();$('#subjectsDialog').showModal();});
         $('#applySubjects').addEventListener('click',()=>{
-          persistSubjects();
-          updateSubjectSummary();
+          persistSelection();
+          renderSubjectControls();
           $('#subjectsDialog').close();
           render();
           renderUniversities();
           renderMaterials();
         });
         $$('.chip').forEach(chip=>chip.addEventListener('click',()=>{
-          queueMicrotask(()=>{persistSubjects();updateSubjectSummary();renderMaterials();});
+          queueMicrotask(()=>{persistSelection();renderSubjectControls();renderMaterials();});
         }));
-        $$('.audience').forEach(button=>button.addEventListener('click',()=>queueMicrotask(()=>{updateSubjectSummary();renderMaterials();})));
-        updateSubjectSummary();
-        setTimeout(()=>{updateSubjectSummary();if(all.length)render();renderMaterials();},0);
+        $$('.audience').forEach(button=>button.addEventListener('click',()=>queueMicrotask(()=>{
+          restoreSelection();
+          renderSubjectControls();
+          render();
+          renderUniversities();
+          renderMaterials();
+        })));
+        restoreSelection();
+        renderSubjectControls();
+        setTimeout(()=>{if(audience==='student'&&all.length)restoreSelection();renderSubjectControls();if(all.length)render();renderMaterials();},0);
       })();
     </script>
   </body>
