@@ -280,6 +280,7 @@ def university_benefits(
         cursor.execute(
             """
             SELECT
+              location.code AS university_location_code,
               program.name AS programme_name,
               olympiad.title AS olympiad_title,
               profile.profile_title,
@@ -296,6 +297,7 @@ def university_benefits(
             JOIN admission_campaigns campaign ON campaign.id = rule.admission_campaign_id
             JOIN universities university ON university.id = campaign.university_id
             LEFT JOIN university_programs program ON program.id = rule.university_program_id
+            LEFT JOIN university_locations location ON location.id = program.university_location_id
             JOIN olympiad_profiles profile ON profile.id = rule.olympiad_profile_id
             JOIN olympiads olympiad ON olympiad.id = profile.olympiad_id
             LEFT JOIN subjects confirmation ON confirmation.id = rule.confirmation_subject_id

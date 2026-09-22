@@ -47,13 +47,17 @@ not a MAX user ID, access token or university choice that needs protection.
 The university screen uses `GET /api/universities?q=<name-or-city>` for search
 and `GET /api/universities/{code}/benefits` for the details. The latter returns
 general policies separately from exact `benefits`; exact rules are filtered to
-the verified, active rows only.
+the verified, active rows only and include `university_location_code`. The
+client must match that code with the selected campus before it displays a
+benefit — a university-level response must never silently apply to a branch.
 
 The mini-app catalogue itself is loaded from the read-only
 `GET /api/university-locations` endpoint. It reads PostgreSQL directly and is
 available before MAX authentication because it exposes only public university
-and source metadata. `dist/data/universities.json` is no longer a frontend
-source; it is the verified import snapshot consumed by the daily loader.
+and source metadata. The bundled `dist/data/universities.json` is a fallback
+for the static demo. `dist/data/benefit-rules.json` is an optional public
+export: it contains only already reviewed programme-level rows and lets the
+same exact-check UI work on Vercel without a database connection.
 
 ## What is authoritative
 
@@ -84,6 +88,7 @@ after the containers become healthy:
 python -m pip install -r requirements.txt
 python parser/collect_olympiads.py
 python parser/load_postgres.py
+python parser/export_public_benefits.py
 ```
 
 The `admission-crawler` container runs a full refresh once a day: it reloads
@@ -116,3 +121,7 @@ files.
 - Add university adapters one by one. A rule should become visible as an exact
   match only after the programme, olympiad profile, diploma status, source URL
   and check date are stored in `benefit_rules`.
+- For a static demo, run `python parser/export_public_benefits.py` after review
+  and deploy the resulting `dist/data/benefit-rules.json`. It contains no
+  candidates or user data; an empty export means “not reviewed yet”, not “no
+  admission benefit exists”.
