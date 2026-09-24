@@ -21,10 +21,14 @@ except ImportError:  # pragma: no cover - environment dependent
 
 TARGETS = (
     ("hse-admission", "hse", "hse-moscow", "strict-hse-2026-v1"),
-    ("mipt-admission", "mipt", "mipt-dolgoprudny", "strict-mipt-2026-v1"),
+    ("mipt-admission", "mipt", "mipt-dolgoprudny", "strict-mipt-2026-v2"),
     ("mephi-admission", "mephi", "mephi-moscow", "strict-mephi-2026-v1"),
-    ("msu-admission", "msu", "msu-moscow", "strict-msu-2026-v1"),
-    ("bmstu-admission", "bmstu", "bmstu-moscow", "strict-bmstu-2026-v1"),
+    ("msu-admission", "msu", "msu-moscow", "strict-msu-2026-v2"),
+)
+
+BMSTU_TARGETS = (
+    ("https://api.www.bmstu.ru/file/124777/download", "strict-bmstu-bvi-2026-v1"),
+    ("https://api.www.bmstu.ru/file/122150/download", "strict-bmstu-100-2026-v1"),
 )
 
 
@@ -57,6 +61,35 @@ def configure(connection: "psycopg.Connection") -> int:
                   AND campaign.campaign_year = 2026
                 """,
                 (adapter_code, adapter_code, source_code, university_code, location_code),
+            )
+            updated += cursor.rowcount
+        for url, adapter_code in BMSTU_TARGETS:
+            cursor.execute(
+                """
+                UPDATE admission_source_targets target
+                SET university_location_id = location.id,
+                    adapter_code = %s,
+                    adapter_config = target.adapter_config || jsonb_build_object(
+                      'strict_adapter', %s::text,
+                      'rsosh_catalogue_year', 2025
+                    ),
+                    next_check_at = now(),
+                    updated_at = now()
+                FROM sources source,
+                     admission_campaigns campaign,
+                     universities university,
+                     university_locations location
+                WHERE target.source_id = source.id
+                  AND campaign.id = target.admission_campaign_id
+                  AND university.id = campaign.university_id
+                  AND location.university_id = university.id
+                  AND source.code = 'bmstu-admission'
+                  AND university.code = 'bmstu'
+                  AND location.code = 'bmstu-moscow'
+                  AND campaign.campaign_year = 2026
+                  AND target.url = %s
+                """,
+                (adapter_code, adapter_code, url),
             )
             updated += cursor.rowcount
         cursor.execute(

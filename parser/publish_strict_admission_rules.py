@@ -91,6 +91,26 @@ def direction_code(value: str) -> str | None:
     return value if re.fullmatch(r"\d{2}\.\d{2}\.\d{2}", value) else None
 
 
+def official_named_scope(candidate: dict[str, Any]) -> str | None:
+    """Accept a programme name only from an adapter with programme-first rows.
+
+    MSU's official table explicitly labels the first column as a programme or
+    specialty. Other sources can use prose such as a competition group,
+    faculty, or a collection of fields; those must not become user-visible
+    programmes merely because they happen to be in the same PDF.
+    """
+    if candidate.get("adapter_code") != "strict-msu-2026-v2":
+        return None
+    payload = candidate.get("raw_payload") or {}
+    if payload.get("kind") != "msu_programme_table_row":
+        return None
+    value = str(candidate.get("raw_programme_name") or "").strip()
+    blocked_fragments = ("все направлен", "группа программ", "конкурсн", "факультет")
+    if not value or direction_code(value) or any(part in normalise(value) for part in blocked_fragments):
+        return None
+    return value
+
+
 def create_code_scope(
     connection: "psycopg.Connection", candidate: dict[str, Any], programmes: list[Programme]
 ) -> Programme | None:
@@ -128,6 +148,39 @@ def create_code_scope(
             RETURNING id, external_code, name
             """,
             (campaign["university_id"], candidate["university_location_id"], code, label),
+        )
+        return Programme(**cursor.fetchone())
+
+
+def create_named_scope(
+    connection: "psycopg.Connection", candidate: dict[str, Any], programmes: list[Programme]
+) -> Programme | None:
+    """Persist an exact programme label that appears in MSU's official table."""
+    name = official_named_scope(candidate)
+    if name is None or any(normalise(programme.name) == normalise(name) for programme in programmes):
+        return None
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT university_id
+            FROM admission_campaigns
+            WHERE id = %s
+            """,
+            (candidate["campaign_id"],),
+        )
+        campaign = cursor.fetchone()
+        if campaign is None:
+            return None
+        cursor.execute(
+            """
+            INSERT INTO university_programs (
+              university_id, university_location_id, external_code, name, catalogue_status
+            ) VALUES (%s, %s, NULL, %s, 'named_verified')
+            ON CONFLICT (university_id, university_location_id, external_code, name)
+            DO UPDATE SET is_active = TRUE, catalogue_status = 'named_verified'
+            RETURNING id, external_code, name
+            """,
+            (campaign["university_id"], candidate["university_location_id"], name),
         )
         return Programme(**cursor.fetchone())
 
@@ -276,7 +329,7 @@ def candidates(connection: "psycopg.Connection", limit: int) -> list[dict[str, A
                    candidate.suggested_diploma_status, candidate.suggested_benefit_kind,
                    confirmation.code AS confirmation_subject_code,
                    candidate.suggested_confirmation_min_score, candidate.confidence,
-                   candidate.source_locator, candidate.source_excerpt,
+                   candidate.source_locator, candidate.source_excerpt, candidate.raw_payload,
                    parse_run.id AS parse_run_id, parse_run.adapter_code,
                    target.university_location_id, document.url AS source_url,
                    COALESCE((target.adapter_config ->> 'rsosh_catalogue_year')::smallint,
@@ -318,6 +371,8 @@ def run(connection: "psycopg.Connection", limit: int) -> tuple[int, int]:
         programme = programme_match(candidate["raw_programme_name"], programmes)
         if programme is None:
             created_scope = create_code_scope(connection, candidate, programmes)
+            if created_scope is None:
+                created_scope = create_named_scope(connection, candidate, programmes)
             if created_scope is not None:
                 programmes.append(created_scope)
                 programme = created_scope

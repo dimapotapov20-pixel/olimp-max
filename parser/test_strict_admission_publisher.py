@@ -3,9 +3,9 @@ from __future__ import annotations
 import unittest
 
 try:
-    from parser.publish_strict_admission_rules import Programme, complete, direction_code, programme_match
+    from parser.publish_strict_admission_rules import Programme, complete, direction_code, official_named_scope, programme_match
 except ModuleNotFoundError:
-    from publish_strict_admission_rules import Programme, complete, direction_code, programme_match
+    from publish_strict_admission_rules import Programme, complete, direction_code, official_named_scope, programme_match
 
 
 class StrictAdmissionPublisherTest(unittest.TestCase):
@@ -42,6 +42,19 @@ class StrictAdmissionPublisherTest(unittest.TestCase):
         self.assertEqual("38.03.01", direction_code("38.03.01"))
         self.assertIsNone(direction_code("38.03"))
         self.assertIsNone(direction_code("все направления"))
+
+    def test_accepts_named_scope_only_from_msu_programme_first_row(self) -> None:
+        candidate = {
+            "adapter_code": "strict-msu-2026-v2",
+            "raw_programme_name": "Фундаментальные математика и механика",
+            "raw_payload": {"kind": "msu_programme_table_row"},
+        }
+        self.assertEqual("Фундаментальные математика и механика", official_named_scope(candidate))
+        candidate["raw_programme_name"] = "Группа программ «Физико-химическая биология»"
+        self.assertIsNone(official_named_scope(candidate))
+        candidate["raw_programme_name"] = "Прикладная математика"
+        candidate["adapter_code"] = "strict-mipt-2026-v2"
+        self.assertIsNone(official_named_scope(candidate))
 
 
 if __name__ == "__main__":

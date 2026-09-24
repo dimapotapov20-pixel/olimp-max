@@ -105,6 +105,7 @@ class StrictAdapter:
     inherit_programme: bool = False
     inherit_olympiad: bool = False
     programme_group_in_first_cell: bool = False
+    reader: str = "grid"
 
 
 COMMON = dict(
@@ -129,9 +130,28 @@ ADAPTERS: dict[str, StrictAdapter] = {
         inherit_olympiad=True,
         programme_group_in_first_cell=True,
     ),
-    "strict-mipt-2026-v1": StrictAdapter(code="strict-mipt-2026-v1", **COMMON),
-    "strict-msu-2026-v1": StrictAdapter(code="strict-msu-2026-v1", **COMMON),
-    "strict-bmstu-2026-v1": StrictAdapter(code="strict-bmstu-2026-v1", **COMMON),
+    # MIPT grants BVI by a physical-school competition group, not an admission
+    # programme. The reader validates that format but deliberately emits no
+    # programme-level rule until an official group-to-programme source is
+    # configured.
+    "strict-mipt-2026-v2": StrictAdapter(
+        code="strict-mipt-2026-v2", reader="mipt_competition_groups", **COMMON
+    ),
+    # MSU's PDF has a stable, programme-first table. It needs its own reader:
+    # programme and olympiad cells may be inherited across continuation rows,
+    # and a cell may enumerate several explicitly named RSOSh olympiads.
+    "strict-msu-2026-v2": StrictAdapter(
+        code="strict-msu-2026-v2", reader="msu_programme_table", **COMMON
+    ),
+    # Bauman publishes different official appendices for BVI and 100 points.
+    # Keeping them separate avoids treating a subject/field scope as a named
+    # educational programme.
+    "strict-bmstu-bvi-2026-v1": StrictAdapter(
+        code="strict-bmstu-bvi-2026-v1", reader="bmstu_bvi_appendix", **COMMON
+    ),
+    "strict-bmstu-100-2026-v1": StrictAdapter(
+        code="strict-bmstu-100-2026-v1", reader="bmstu_hundred_appendix", **COMMON
+    ),
     # The official МИФИ table uses programme codes in the BVI/100 columns and
     # explicitly covers both winners and prize winners in its scope heading.
     "strict-mephi-2026-v1": StrictAdapter(
@@ -218,7 +238,7 @@ def benefit_from_cell(header: str, value: str, *, generic: bool = False) -> Bene
     header, value = normalise(header), normalise(value)
     if not value or value in {"-", "—", "нет", "не предоставляется"}:
         return None
-    if "100 бал" in header or (generic and "100 бал" in value):
+    if "100 бал" in header or (generic and ("100 бал" in value or "максимальное количество баллов" in value)):
         return "hundred_points"
     if "бви" in header or "без вступительных" in header or (generic and ("бви" in value or "без вступительных" in value)):
         return "bvi"
@@ -239,7 +259,235 @@ class StrictRule:
     raw_payload: dict[str, object]
 
 
-def strict_rules(adapter_code: str, markdown: str) -> list[StrictRule]:
+def first_header_index(headers: list[str], *fragments: str) -> int | None:
+    """Return the first header containing every requested normalized fragment."""
+    wanted = tuple(normalise(fragment) for fragment in fragments)
+    return next(
+        (index for index, header in enumerate(headers) if all(fragment in normalise(header) for fragment in wanted)),
+        None,
+    )
+
+
+def provided(value: str) -> bool:
+    """Bauman's appendices use this exact value for a granted benefit."""
+    return normalise(value) == "предоставляется"
+
+
+def split_msu_olympiads(value: str) -> tuple[str, ...]:
+    """Split only an explicit MSU list of named olympiads.
+
+    ``*`` means every olympiad of a listed level. It is intentionally not
+    expanded: that would require joining an external catalogue and could
+    silently broaden an admission right. Commas inside a name stay untouched;
+    we split a comma only when the next fragment starts a new title.
+    """
+    value = compact(value)
+    if not value or value == "*":
+        return ()
+    starts = (
+        "всероссийская", "московская", "олимпиада", "санкт-петербургская",
+        "турнир", "вузовско", "городская", "инженерная", "интернет-",
+        "международная", "межрегиональная", "многопрофильная", "объединенная",
+        "открытая", "общероссийская", "отраслевая", "плехановская", "пироговская",
+        "телевизионная", "университетская", "всесибирская", "герценовская",
+        "океан", "северо-восточная",
+    )
+    pattern = r"\s*(?:;|,\s+(?=(?:" + "|".join(starts) + r")\b))\s*"
+    titles = tuple(compact(part) for part in re.split(pattern, value, flags=re.IGNORECASE) if compact(part))
+    if not titles or any("олимпиад" not in normalise(title) and normalise(title) != "турнир городов" for title in titles):
+        return ()
+    return tuple(dict.fromkeys(titles))
+
+
+def append_rule(
+    output: list[StrictRule],
+    seen: set[tuple[str, str, str, str, str]],
+    *,
+    programme_selector: str,
+    olympiad_title: str,
+    profile_title: str,
+    diploma_status: DiplomaStatus,
+    benefit_kind: BenefitKind,
+    confirmation_subject_code: str | None,
+    confirmation_min_score: int | None,
+    source_locator: str,
+    source_excerpt: str,
+    raw_payload: dict[str, object],
+) -> None:
+    key = (programme_selector, olympiad_title, profile_title, diploma_status, benefit_kind)
+    if key in seen:
+        return
+    seen.add(key)
+    output.append(
+        StrictRule(
+            programme_selector=programme_selector,
+            olympiad_title=olympiad_title,
+            profile_title=profile_title,
+            diploma_status=diploma_status,
+            benefit_kind=benefit_kind,
+            confirmation_subject_code=confirmation_subject_code,
+            confirmation_min_score=confirmation_min_score,
+            source_locator=source_locator,
+            source_excerpt=source_excerpt,
+            raw_payload=raw_payload,
+        )
+    )
+
+
+def msu_rules(markdown: str) -> list[StrictRule]:
+    """Read MSU's 2026 programme-first special-rights PDF.
+
+    A row is emitted only for a named programme, a named profile, a concrete
+    olympiad (not ``*``), stated diploma status and BVI/100-points benefit.
+    """
+    document = normalise(markdown)
+    if not all(term in document for term in ("мгу", "особые права", "2026")):
+        return []
+
+    output: list[StrictRule] = []
+    seen: set[tuple[str, str, str, str, str]] = set()
+    for header_line, headers, rows in markdown_tables(markdown):
+        programme_index = first_header_index(headers, "направление подготовки")
+        profile_index = first_header_index(headers, "профиль олимпиады")
+        olympiad_index = first_header_index(headers, "перечень олимпиад")
+        diploma_index = first_header_index(headers, "победитель", "призер")
+        subject_index = first_header_index(headers, "общеобразовательный предмет", "егэ")
+        benefit_index = first_header_index(headers, "льгота")
+        if None in (programme_index, profile_index, olympiad_index, diploma_index, benefit_index):
+            continue
+
+        programme = profile = olympiads = subject = ""
+        for line_number, cells in rows:
+            programme_cell = cell_at(cells, programme_index)
+            profile_cell = cell_at(cells, profile_index)
+            olympiad_cell = cell_at(cells, olympiad_index)
+            subject_cell = cell_at(cells, subject_index)
+            if programme_cell:
+                programme = programme_cell
+            if profile_cell:
+                profile = profile_cell
+            if olympiad_cell:
+                olympiads = olympiad_cell
+            if subject_cell:
+                subject = subject_cell
+            statuses = explicit_statuses(cell_at(cells, diploma_index))
+            benefit = benefit_from_cell(headers[benefit_index], cell_at(cells, benefit_index), generic=True)
+            selectors = programme_selectors(programme)
+            titles = split_msu_olympiads(olympiads)
+            if not selectors or not profile or not statuses or benefit is None or not titles:
+                continue
+            excerpt = compact(" | ".join(cells))[:4_000]
+            payload: dict[str, object] = {
+                "kind": "msu_programme_table_row",
+                "adapter": "strict-msu-2026-v2",
+                "header_line": header_line,
+                "headers": headers,
+                "row": cells,
+                "olympiad_titles": titles,
+            }
+            score = 75 if subject else None
+            for selector in selectors:
+                for title in titles:
+                    for status in statuses:
+                        append_rule(
+                            output,
+                            seen,
+                            programme_selector=selector,
+                            olympiad_title=title,
+                            profile_title=profile,
+                            diploma_status=status,
+                            benefit_kind=benefit,
+                            confirmation_subject_code=subject_code(subject),
+                            confirmation_min_score=score,
+                            source_locator=f"markdown:line:{line_number}",
+                            source_excerpt=excerpt,
+                            raw_payload=payload,
+                        )
+    return output
+
+
+def bmstu_bvi_rules(markdown: str) -> list[StrictRule]:
+    """Read Bauman appendix 5.1, whose explicit scope is direction codes."""
+    document = normalise(markdown)
+    if not all(term in document for term in ("приложение 5.1", "право поступления без вступительных")):
+        return []
+
+    output: list[StrictRule] = []
+    seen: set[tuple[str, str, str, str, str]] = set()
+    directions: tuple[str, ...] = ()
+    olympiad = ""
+    for line_number, line in enumerate(markdown.splitlines(), start=1):
+        if not line.lstrip().startswith("|") or is_separator(line):
+            continue
+        cells = table_cells(line)
+        scope = " ".join(cells)
+        if "для направлен" in normalise(scope):
+            directions = tuple(dict.fromkeys(re.findall(r"(?<!\d)\d{2}\.\d{2}\.\d{2}(?!\d)", scope)))
+            olympiad = ""
+            continue
+        if not directions or len(cells) < 8:
+            continue
+        if cells[1]:
+            olympiad = cells[1]
+        profile = cells[2]
+        if not olympiad or not profile:
+            continue
+        statuses: list[DiplomaStatus] = []
+        if provided(cells[6]):
+            statuses.append("winner")
+        if provided(cells[7]):
+            statuses.append("prize_winner")
+        if not statuses:
+            continue
+        excerpt = compact(" | ".join(cells))[:4_000]
+        payload: dict[str, object] = {
+            "kind": "bmstu_bvi_appendix_row",
+            "adapter": "strict-bmstu-bvi-2026-v1",
+            "direction_codes": directions,
+            "row": cells,
+        }
+        for direction in directions:
+            for status in statuses:
+                append_rule(
+                    output,
+                    seen,
+                    programme_selector=direction,
+                    olympiad_title=olympiad,
+                    profile_title=profile,
+                    diploma_status=status,
+                    benefit_kind="bvi",
+                    confirmation_subject_code=subject_code(cells[5]),
+                    confirmation_min_score=75,
+                    source_locator=f"markdown:line:{line_number}",
+                    source_excerpt=excerpt,
+                    raw_payload=payload,
+                )
+    return output
+
+
+def mipt_competition_group_rules(markdown: str) -> list[StrictRule]:
+    """Fail closed until an official MIPT group-to-programme catalogue exists."""
+    document = normalise(markdown)
+    if "физтех-школ" not in document or "конкурсн" not in document:
+        return []
+    # MIPT's source names physical-school competition groups (ФРКТ, ФПМИ,
+    # etc.) in BVI cells. They are not educational-programme identifiers, so
+    # publishing them as programmes would make an unauditable claim.
+    return []
+
+
+def bmstu_hundred_rules(markdown: str) -> list[StrictRule]:
+    """Fail closed for Bauman appendix 5.3's subject/field-only scope."""
+    document = normalise(markdown)
+    if not all(term in document for term in ("приложение 5.3", "100 баллов")):
+        return []
+    # The appendix identifies subject and higher-education field, but no exact
+    # Bauman programme or standard direction code. Keep it out of automatic
+    # publication until a first-party programme mapping is configured.
+    return []
+
+
+def _grid_rules(adapter_code: str, markdown: str) -> list[StrictRule]:
     """Parse complete, explicit rules for one configured official format."""
     adapter = ADAPTERS.get(adapter_code)
     if adapter is None:
@@ -345,3 +593,21 @@ def strict_rules(adapter_code: str, markdown: str) -> list[StrictRule]:
                             )
                         )
     return output
+
+
+def strict_rules(adapter_code: str, markdown: str) -> list[StrictRule]:
+    """Dispatch to the checked reader for a configured official format."""
+    adapter = ADAPTERS.get(adapter_code)
+    if adapter is None:
+        raise ValueError(f"Unsupported strict admission adapter: {adapter_code}")
+    readers = {
+        "grid": _grid_rules,
+        "mipt_competition_groups": lambda _code, text: mipt_competition_group_rules(text),
+        "msu_programme_table": lambda _code, text: msu_rules(text),
+        "bmstu_bvi_appendix": lambda _code, text: bmstu_bvi_rules(text),
+        "bmstu_hundred_appendix": lambda _code, text: bmstu_hundred_rules(text),
+    }
+    try:
+        return readers[adapter.reader](adapter_code, markdown)
+    except KeyError as error:  # pragma: no cover - configuration guard
+        raise ValueError(f"Unsupported strict reader: {adapter.reader}") from error

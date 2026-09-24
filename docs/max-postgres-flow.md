@@ -104,8 +104,9 @@ programme, campus and РСОШ-profile links resolve. If a source is unavailable
 the previous verified catalogue and benefits stay published; the failure is
 logged and retried on the next daily run.
 
-For an existing database, apply `db/migrations/002_admission_rules_pipeline.sql`
-and then `db/migrations/008_strict_admission_adapters.sql` once before
+For an existing database, apply `db/migrations/002_admission_rules_pipeline.sql`,
+then `db/migrations/008_strict_admission_adapters.sql`, and finally
+`db/migrations/009_university_specific_strict_adapters.sql` once before
 deploying the version that reads verified benefit rules. The
 initialisation files are intentionally not re-run against an existing Compose
 volume.
