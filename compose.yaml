@@ -56,7 +56,10 @@ services:
       # Defaults to once a day. Only lower this value for local development.
       CATALOG_REFRESH_SECONDS: ${CATALOG_REFRESH_SECONDS:-86400}
       ADMISSION_CRAWLER_LIMIT: ${ADMISSION_CRAWLER_LIMIT:-100}
-      STRICT_PUBLISHER_LIMIT: ${STRICT_PUBLISHER_LIMIT:-500}
+      # A single official appendix can contain thousands of exact BVI rows.
+      # Resolve them in one daily run; unresolved rows remain blocked, never
+      # published by the larger batch size itself.
+      STRICT_PUBLISHER_LIMIT: ${STRICT_PUBLISHER_LIMIT:-20000}
     volumes:
       - olimp-admission-snapshots:/app/parser/snapshots
     depends_on:

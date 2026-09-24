@@ -97,7 +97,7 @@ python3 -m unittest parser/test_keyword_candidates.py
 python3 parser/load_university_locations.py
 python3 parser/configure_strict_admission_targets.py
 python3 parser/crawl_admission_rules.py --force --limit 100
-python3 parser/publish_strict_admission_rules.py --limit 500
+python3 parser/publish_strict_admission_rules.py --limit 20000
 python3 -m unittest parser/test_strict_admission_adapters.py parser/test_strict_admission_publisher.py
 ```
 
