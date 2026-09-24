@@ -91,6 +91,11 @@ def direction_code(value: str) -> str | None:
     return value if re.fullmatch(r"\d{2}\.\d{2}\.\d{2}", value) else None
 
 
+def degree_level_for_direction(code: str) -> str:
+    """The middle classifier block ``05`` denotes a specialist programme."""
+    return "specialist" if code.split(".")[1] == "05" else "bachelor"
+
+
 def official_named_scope(candidate: dict[str, Any]) -> str | None:
     """Accept a programme name only from an adapter with programme-first rows.
 
@@ -141,13 +146,13 @@ def create_code_scope(
         cursor.execute(
             """
             INSERT INTO university_programs (
-              university_id, university_location_id, external_code, name, catalogue_status
-            ) VALUES (%s, %s, %s, %s, 'code_only')
+              university_id, university_location_id, external_code, name, catalogue_status, degree_level
+            ) VALUES (%s, %s, %s, %s, 'code_only', %s)
             ON CONFLICT (university_id, university_location_id, external_code, name)
-            DO UPDATE SET is_active = TRUE
+            DO UPDATE SET is_active = TRUE, degree_level = EXCLUDED.degree_level
             RETURNING id, external_code, name
             """,
-            (campaign["university_id"], candidate["university_location_id"], code, label),
+            (campaign["university_id"], candidate["university_location_id"], code, label, degree_level_for_direction(code)),
         )
         return Programme(**cursor.fetchone())
 
@@ -355,6 +360,18 @@ def candidates(connection: "psycopg.Connection", limit: int) -> list[dict[str, A
 
 
 def run(connection: "psycopg.Connection", limit: int) -> tuple[int, int]:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE university_programs
+            SET degree_level = CASE
+              WHEN split_part(external_code, '.', 2) = '05' THEN 'specialist'
+              ELSE 'bachelor'
+            END
+            WHERE catalogue_status = 'code_only'
+              AND external_code ~ '^\\d{2}\\.\\d{2}\\.\\d{2}$'
+            """
+        )
     published = blocked = 0
     profiles_by_year: dict[int, list[RsoshProfile]] = {}
     programmes_by_location: dict[int, list[Programme]] = {}

@@ -3,9 +3,9 @@ from __future__ import annotations
 import unittest
 
 try:
-    from parser.publish_strict_admission_rules import Programme, complete, direction_code, official_named_scope, programme_match
+    from parser.publish_strict_admission_rules import Programme, complete, degree_level_for_direction, direction_code, official_named_scope, programme_match
 except ModuleNotFoundError:
-    from publish_strict_admission_rules import Programme, complete, direction_code, official_named_scope, programme_match
+    from publish_strict_admission_rules import Programme, complete, degree_level_for_direction, direction_code, official_named_scope, programme_match
 
 
 class StrictAdmissionPublisherTest(unittest.TestCase):
@@ -42,6 +42,10 @@ class StrictAdmissionPublisherTest(unittest.TestCase):
         self.assertEqual("38.03.01", direction_code("38.03.01"))
         self.assertIsNone(direction_code("38.03"))
         self.assertIsNone(direction_code("все направления"))
+
+    def test_direction_code_marks_specialist_level(self) -> None:
+        self.assertEqual("bachelor", degree_level_for_direction("09.03.04"))
+        self.assertEqual("specialist", degree_level_for_direction("10.05.03"))
 
     def test_accepts_named_scope_only_from_msu_programme_first_row(self) -> None:
         candidate = {

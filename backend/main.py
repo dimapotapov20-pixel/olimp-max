@@ -155,6 +155,75 @@ def search_university_locations(
     return {"items": locations}
 
 
+@app.get("/api/university-locations/{location_code}/programmes")
+def university_location_programmes(
+    location_code: str,
+    campaign_year: int = 2026,
+    connection: psycopg.Connection = Depends(database),
+) -> dict:
+    """Return programmes explicitly linked to one campus or branch.
+
+    This endpoint intentionally has no user dependency: it is a public
+    catalogue.  The relationship remains precise because every row joins the
+    programme to ``university_locations`` rather than to the parent university.
+    ``code_only`` rows are admission-document direction codes, not guessed
+    programme names.
+    """
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT
+              university.code AS university_code,
+              university.name AS university_name,
+              location.code AS university_location_code,
+              location.name AS location_name,
+              program.external_code,
+              program.name AS programme_name,
+              program.catalogue_status,
+              program.degree_level,
+              count(rule.id) FILTER (
+                WHERE rule.is_active AND rule.verification_status = 'verified'
+              ) AS verified_benefits_count,
+              COALESCE(
+                min(rule.source_url) FILTER (
+                  WHERE rule.is_active AND rule.verification_status = 'verified'
+                ),
+                location.admission_rules_url,
+                location.official_url
+              ) AS source_url,
+              to_char(
+                COALESCE(
+                  max(rule.checked_at) FILTER (
+                    WHERE rule.is_active AND rule.verification_status = 'verified'
+                  ),
+                  location.admission_checked_at,
+                  location.location_checked_at
+                ) AT TIME ZONE 'UTC',
+                'YYYY-MM-DD'
+              ) AS checked_at
+            FROM university_locations location
+            JOIN universities university ON university.id = location.university_id
+            JOIN university_programs program
+              ON program.university_location_id = location.id
+             AND program.is_active
+            LEFT JOIN admission_campaigns campaign
+              ON campaign.university_id = university.id
+             AND campaign.campaign_year = %s
+            LEFT JOIN benefit_rules rule
+              ON rule.university_program_id = program.id
+             AND rule.admission_campaign_id = campaign.id
+            WHERE location.code = %s
+              AND location.is_active
+              AND university.is_active
+            GROUP BY university.id, location.id, program.id
+            ORDER BY program.external_code NULLS LAST, program.name
+            """,
+            (campaign_year, location_code),
+        )
+        programmes = cursor.fetchall()
+    return {"items": programmes}
+
+
 @app.post("/api/auth/max")
 def authenticate_in_max(user: dict = Depends(current_user)) -> dict:
     """Creates/updates the local user only after the MAX signature is checked."""
