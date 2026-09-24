@@ -27,6 +27,11 @@ from typing import Any
 from urllib.parse import urlparse
 
 try:
+    from parser.strict_admission_adapters import StrictRule, supported_codes as strict_adapter_codes, strict_rules
+except ModuleNotFoundError:  # Allows `python parser/crawl_admission_rules.py`.
+    from strict_admission_adapters import StrictRule, supported_codes as strict_adapter_codes, strict_rules
+
+try:
     import requests
 except ImportError:  # pragma: no cover - reported by main
     requests = None
@@ -44,9 +49,9 @@ except ImportError:  # pragma: no cover - reported by main
 ROOT = Path(__file__).resolve().parents[1]
 SNAPSHOT_DIR = ROOT / "parser" / "snapshots"
 ADAPTER_CODE = "requests-bs4-keyword-v1"
-ADAPTER_VERSION = "2026.7"
+ADAPTER_VERSION = "2026.8"
 # Lets an existing local database transition without a manual data update.
-SUPPORTED_TARGET_CODES = (ADAPTER_CODE, "docling-keyword-v1")
+SUPPORTED_TARGET_CODES = (ADAPTER_CODE, "docling-keyword-v1", *strict_adapter_codes())
 USER_AGENT = "OlimpAdmissionCrawler/0.1 (+educational-demo; public-source-reader)"
 MAX_DOCUMENT_BYTES = 30 * 1024 * 1024
 
@@ -89,6 +94,8 @@ class Target:
     id: int
     source_id: int
     campaign_id: int
+    university_location_id: int | None
+    adapter_code: str
     url: str
     source_base_url: str
     adapter_config: dict[str, Any]
@@ -108,6 +115,9 @@ class KeywordCandidate:
     raw_payload: dict[str, Any]
     raw_olympiad_name: str | None = None
     raw_profile_name: str | None = None
+    raw_programme_name: str | None = None
+    suggested_point_value: int | None = None
+    suggested_olympiad_level: int | None = None
 
 
 def compact(value: str) -> str:
@@ -120,6 +130,11 @@ def normalized(value: str) -> str:
 
 def stable_key(*parts: str) -> str:
     return hashlib.sha256("\x1f".join(parts).encode("utf-8")).hexdigest()[:32]
+
+
+def adapter_version(target: Target) -> str:
+    """A target changing parser mode must reprocess an unchanged document."""
+    return f"{target.adapter_code}:{ADAPTER_VERSION}"
 
 
 def guess_suffix(content_type: str, url: str) -> str:
@@ -517,6 +532,39 @@ def find_candidates(markdown: str, document_hash: str) -> list[KeywordCandidate]
     return result
 
 
+def strict_rule_candidate(rule: StrictRule, document_hash: str) -> KeywordCandidate:
+    """Make a strict table row auditable through the normal candidate table.
+
+    A strict adapter has *not* published a benefit at this point.  The
+    publisher still resolves the exact programme and RСОШ profile foreign keys
+    inside the same admission campaign.
+    """
+    key = stable_key(
+        document_hash,
+        rule.source_locator,
+        rule.programme_selector,
+        rule.olympiad_title,
+        rule.profile_title,
+        rule.diploma_status,
+        rule.benefit_kind,
+    )
+    return KeywordCandidate(
+        candidate_key=key,
+        source_locator=rule.source_locator,
+        source_excerpt=rule.source_excerpt,
+        raw_rule_text=rule.source_excerpt,
+        suggested_benefit_kind=rule.benefit_kind,
+        suggested_diploma_status=rule.diploma_status,
+        suggested_confirmation_subject_code=rule.confirmation_subject_code,
+        suggested_confirmation_min_score=rule.confirmation_min_score,
+        confidence=100,
+        raw_payload=rule.raw_payload,
+        raw_olympiad_name=rule.olympiad_title,
+        raw_profile_name=rule.profile_title,
+        raw_programme_name=rule.programme_selector,
+    )
+
+
 def due_targets(
     connection: "psycopg.Connection",
     limit: int,
@@ -527,7 +575,8 @@ def due_targets(
     with connection.cursor() as cursor:
         cursor.execute(
             """
-            SELECT target.id, target.source_id, target.admission_campaign_id AS campaign_id, target.url,
+            SELECT target.id, target.source_id, target.admission_campaign_id AS campaign_id,
+                   target.university_location_id, target.adapter_code, target.url,
                    source.base_url AS source_base_url, target.adapter_config
             FROM admission_source_targets target
             JOIN sources source ON source.id = target.source_id
@@ -579,7 +628,7 @@ def create_document_and_run(
             ORDER BY document.fetched_at DESC
             LIMIT 1
             """,
-            (target.id, ADAPTER_VERSION, target.source_id, digest),
+            (target.id, adapter_version(target), target.source_id, digest),
         )
         prior = cursor.fetchone()
         if prior and prior["parsed"]:
@@ -606,7 +655,7 @@ def create_document_and_run(
                   AND adapter_version = %s
                 LIMIT 1
                 """,
-                (target.id, document_id, ADAPTER_VERSION),
+                (target.id, document_id, adapter_version(target)),
             )
             existing_run = cursor.fetchone()
             if existing_run:
@@ -634,7 +683,7 @@ def create_document_and_run(
                 (
                     target.source_id, final_url, digest, storage_key, content_type, len(body), etag,
                     parsed_http_date(last_modified), f"Admission document: {target.url}",
-                    Jsonb({"crawler": ADAPTER_CODE, "crawler_version": ADAPTER_VERSION}),
+                    Jsonb({"crawler": target.adapter_code, "crawler_version": adapter_version(target)}),
                 ),
             )
             document_id = cursor.fetchone()["id"]
@@ -648,7 +697,7 @@ def create_document_and_run(
                 ) VALUES (%s, %s, %s, %s, 'running')
                 RETURNING id
                 """,
-                (target.id, document_id, ADAPTER_CODE, ADAPTER_VERSION),
+                (target.id, document_id, target.adapter_code, adapter_version(target)),
             )
             run_id = cursor.fetchone()["id"]
     connection.commit()
@@ -684,26 +733,30 @@ def finish_run(
             (target.id, run_id),
         )
         for candidate in candidates:
+            automatic_status = "pending_resolution" if target.adapter_code in strict_adapter_codes() else "not_applicable"
             cursor.execute(
                 """
                 INSERT INTO admission_rule_candidates (
                   admission_parse_run_id, source_document_id, admission_campaign_id, candidate_key,
                   source_locator, source_excerpt, raw_payload, raw_rule_text,
-                  raw_olympiad_name, raw_profile_name,
+                  raw_programme_name, raw_olympiad_name, raw_profile_name,
                   suggested_diploma_status, suggested_benefit_kind,
+                  suggested_point_value, suggested_olympiad_level,
                   suggested_confirmation_subject_id, suggested_confirmation_min_score,
-                  match_status, review_status, confidence
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'unresolved', 'pending', %s)
+                  match_status, review_status, automatic_status, automatic_note, confidence
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'unresolved', 'pending', %s, %s, %s)
                 ON CONFLICT (admission_parse_run_id, candidate_key) DO NOTHING
                 """,
                 (
                     run_id, document_id, target.campaign_id, candidate.candidate_key,
                     candidate.source_locator, candidate.source_excerpt, Jsonb(candidate.raw_payload),
-                    candidate.raw_rule_text, candidate.raw_olympiad_name, candidate.raw_profile_name,
+                    candidate.raw_rule_text, candidate.raw_programme_name,
+                    candidate.raw_olympiad_name, candidate.raw_profile_name,
                     candidate.suggested_diploma_status,
                     candidate.suggested_benefit_kind,
+                    candidate.suggested_point_value, candidate.suggested_olympiad_level,
                     subject_ids.get(candidate.suggested_confirmation_subject_code),
-                    candidate.suggested_confirmation_min_score, candidate.confidence,
+                    candidate.suggested_confirmation_min_score, automatic_status, None, candidate.confidence,
                 ),
             )
         cursor.execute(
@@ -786,7 +839,11 @@ def crawl_target(connection: "psycopg.Connection", target: Target) -> tuple[str,
     document_id, run_id = created
     try:
         markdown = document_to_markdown(snapshot)
-        candidates = find_candidates(markdown, digest)
+        candidates = (
+            [strict_rule_candidate(rule, digest) for rule in strict_rules(target.adapter_config.get("strict_adapter", target.adapter_code), markdown)]
+            if target.adapter_code in strict_adapter_codes()
+            else find_candidates(markdown, digest)
+        )
         return "succeeded", finish_run(connection, target, document_id=document_id, run_id=run_id, candidates=candidates)
     except Exception as error:
         fail_run(connection, target, run_id, str(error))

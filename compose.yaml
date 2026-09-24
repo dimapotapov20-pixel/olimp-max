@@ -45,7 +45,9 @@ services:
         while true; do
           echo "[$$(date -Iseconds)] Starting daily catalogue refresh"
           python parser/load_university_locations.py || echo "Location catalogue refresh failed; keeping the last verified catalogue."
+          python parser/configure_strict_admission_targets.py || echo "Strict source binding failed; generic source discovery stays available."
           python parser/crawl_admission_rules.py --limit "$${ADMISSION_CRAWLER_LIMIT:-100}" || echo "Admission rules crawl failed; retrying on the next scheduled run."
+          python parser/publish_strict_admission_rules.py --limit "$${STRICT_PUBLISHER_LIMIT:-500}" || echo "Strict benefit publication failed; no unverified benefit was exposed."
           echo "[$$(date -Iseconds)] Daily catalogue refresh finished; next run in 24 hours"
           sleep "$${CATALOG_REFRESH_SECONDS:-86400}"
         done
@@ -54,6 +56,7 @@ services:
       # Defaults to once a day. Only lower this value for local development.
       CATALOG_REFRESH_SECONDS: ${CATALOG_REFRESH_SECONDS:-86400}
       ADMISSION_CRAWLER_LIMIT: ${ADMISSION_CRAWLER_LIMIT:-100}
+      STRICT_PUBLISHER_LIMIT: ${STRICT_PUBLISHER_LIMIT:-500}
     volumes:
       - olimp-admission-snapshots:/app/parser/snapshots
     depends_on:

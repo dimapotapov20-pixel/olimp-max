@@ -181,6 +181,8 @@ CREATE TABLE university_programs (
   university_location_id BIGINT REFERENCES university_locations(id) ON DELETE CASCADE,
   external_code TEXT,
   name TEXT NOT NULL,
+  catalogue_status TEXT NOT NULL DEFAULT 'named_verified'
+    CHECK (catalogue_status IN ('named_verified', 'code_only')),
   degree_level TEXT NOT NULL DEFAULT 'bachelor' CHECK (degree_level IN ('bachelor', 'specialist')),
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   UNIQUE NULLS NOT DISTINCT (university_id, university_location_id, external_code, name)
@@ -218,6 +220,8 @@ CREATE TABLE benefit_rules (
   checked_at TIMESTAMPTZ NOT NULL,
   is_verified BOOLEAN NOT NULL DEFAULT FALSE,
   verification_status TEXT NOT NULL DEFAULT 'draft' CHECK (verification_status IN ('draft', 'needs_review', 'verified', 'rejected', 'superseded')),
+  publication_method TEXT NOT NULL DEFAULT 'manual'
+    CHECK (publication_method IN ('manual', 'strict_adapter')),
   verified_at TIMESTAMPTZ,
   verified_by TEXT,
   last_seen_at TIMESTAMPTZ,
@@ -259,6 +263,9 @@ CREATE TABLE admission_rule_candidates (
   suggested_confirmation_min_score SMALLINT CHECK (suggested_confirmation_min_score BETWEEN 0 AND 100),
   match_status TEXT NOT NULL DEFAULT 'unresolved' CHECK (match_status IN ('unresolved', 'resolved', 'ambiguous')),
   review_status TEXT NOT NULL DEFAULT 'pending' CHECK (review_status IN ('pending', 'approved', 'rejected', 'superseded')),
+  automatic_status TEXT NOT NULL DEFAULT 'not_applicable'
+    CHECK (automatic_status IN ('not_applicable', 'pending_resolution', 'published', 'blocked')),
+  automatic_note TEXT,
   confidence SMALLINT CHECK (confidence BETWEEN 0 AND 100),
   published_benefit_rule_id BIGINT REFERENCES benefit_rules(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),

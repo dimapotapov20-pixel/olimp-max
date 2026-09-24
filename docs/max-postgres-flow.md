@@ -92,17 +92,21 @@ python parser/export_public_benefits.py
 ```
 
 The `admission-crawler` container runs a full refresh once a day: it reloads
-the verified location catalogue, then checks due university admission targets.
+the verified location catalogue, binds the five strict main-campus adapters,
+then checks due university admission targets and publishes only their fully
+resolved rows.
 Its default pause is `CATALOG_REFRESH_SECONDS=86400`; each target also keeps
 its own `poll_interval_hours` (24 hours by default). This prevents repeated
 downloads while preserving a predictable daily schedule. It stores raw
-snapshots in the `olimp-admission-snapshots` volume and writes only review
-candidates to PostgreSQL. If a source is unavailable, the previous verified
-catalogue and benefits stay published; the failure is logged and retried on
-the next daily run.
+snapshots in the `olimp-admission-snapshots` volume. Generic sources write
+review candidates only; strict source rows are exposed only after the exact
+programme, campus and РСОШ-profile links resolve. If a source is unavailable,
+the previous verified catalogue and benefits stay published; the failure is
+logged and retried on the next daily run.
 
 For an existing database, apply `db/migrations/002_admission_rules_pipeline.sql`
-once before deploying the version that reads verified benefit rules. The
+and then `db/migrations/008_strict_admission_adapters.sql` once before
+deploying the version that reads verified benefit rules. The
 initialisation files are intentionally not re-run against an existing Compose
 volume.
 
