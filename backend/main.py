@@ -52,7 +52,8 @@ def current_user(
             INSERT INTO app_users (max_user_id, audience)
             VALUES (%s, 'school')
             ON CONFLICT (max_user_id) DO UPDATE SET updated_at = now()
-            RETURNING id, max_user_id, audience, grade_or_course, region
+            RETURNING id, max_user_id, audience, grade_or_course,
+                      default_diploma_year, region
             """,
             (max_user.user_id,),
         )
@@ -73,12 +74,16 @@ def health(connection: psycopg.Connection = Depends(database)) -> dict:
 class UserSetup(BaseModel):
     audience: Literal["school", "student"]
     grade_or_course: str | None = Field(default=None, max_length=40)
-    subject_codes: list[str] = Field(default_factory=list, max_length=12)
+    default_diploma_year: int | None = Field(default=None, ge=2020, le=2100)
+    # Omit this field when only another piece of the profile changed. This
+    # prevents a partial client update from silently erasing saved subjects.
+    subject_codes: list[str] | None = Field(default=None, max_length=12)
 
 
 class TrackRequest(BaseModel):
     olympiad_profile_id: int
     is_active: bool = True
+    diploma_year: int | None = Field(default=None, ge=2020, le=2100)
 
 
 @app.get("/api/university-locations")
@@ -240,18 +245,31 @@ def update_setup(
 ) -> dict:
     with connection.cursor() as cursor:
         cursor.execute(
-            "UPDATE app_users SET audience = %s, grade_or_course = %s, updated_at = now() WHERE id = %s",
-            (payload.audience, payload.grade_or_course, user["id"]),
-        )
-        cursor.execute("DELETE FROM user_subjects WHERE user_id = %s", (user["id"],))
-        cursor.execute(
             """
-            INSERT INTO user_subjects (user_id, subject_id)
-            SELECT %s, id FROM subjects WHERE code = ANY(%s)
-            ON CONFLICT DO NOTHING
+            UPDATE app_users
+            SET audience = %s,
+                grade_or_course = %s,
+                default_diploma_year = %s,
+                updated_at = now()
+            WHERE id = %s
             """,
-            (user["id"], payload.subject_codes),
+            (
+                payload.audience,
+                payload.grade_or_course,
+                payload.default_diploma_year,
+                user["id"],
+            ),
         )
+        if payload.subject_codes is not None:
+            cursor.execute("DELETE FROM user_subjects WHERE user_id = %s", (user["id"],))
+            cursor.execute(
+                """
+                INSERT INTO user_subjects (user_id, subject_id)
+                SELECT %s, id FROM subjects WHERE code = ANY(%s)
+                ON CONFLICT DO NOTHING
+                """,
+                (user["id"], payload.subject_codes),
+            )
     connection.commit()
     return {"ok": True}
 
@@ -313,13 +331,24 @@ def set_tracking(
     with connection.cursor() as cursor:
         cursor.execute(
             """
-            INSERT INTO tracked_olympiads (user_id, olympiad_profile_id, is_active)
-            VALUES (%s, %s, %s)
+            INSERT INTO tracked_olympiads
+              (user_id, olympiad_profile_id, is_active, diploma_year)
+            VALUES (%s, %s, %s, %s)
             ON CONFLICT (user_id, olympiad_profile_id)
-            DO UPDATE SET is_active = EXCLUDED.is_active
-            RETURNING id, is_active
+            DO UPDATE SET
+              is_active = EXCLUDED.is_active,
+              diploma_year = COALESCE(
+                EXCLUDED.diploma_year,
+                tracked_olympiads.diploma_year
+              )
+            RETURNING id, is_active, diploma_year
             """,
-            (user["id"], payload.olympiad_profile_id, payload.is_active),
+            (
+                user["id"],
+                payload.olympiad_profile_id,
+                payload.is_active,
+                payload.diploma_year,
+            ),
         )
         tracked = cursor.fetchone()
     connection.commit()

@@ -402,6 +402,7 @@ CREATE TABLE app_users (
   max_user_id TEXT NOT NULL UNIQUE,
   audience TEXT NOT NULL CHECK (audience IN ('school', 'student')),
   grade_or_course TEXT,
+  default_diploma_year SMALLINT CHECK (default_diploma_year BETWEEN 2020 AND 2100),
   region TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -418,6 +419,7 @@ CREATE TABLE tracked_olympiads (
   user_id BIGINT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   olympiad_profile_id BIGINT NOT NULL REFERENCES olympiad_profiles(id) ON DELETE CASCADE,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  diploma_year SMALLINT CHECK (diploma_year BETWEEN 2020 AND 2100),
   added_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   last_notified_at TIMESTAMPTZ,
   UNIQUE (user_id, olympiad_profile_id)

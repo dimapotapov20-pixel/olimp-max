@@ -29,7 +29,7 @@
 
 ## Применение
 
-Для новой БД достаточно применить [schema.sql](../db/schema.sql). Для уже развёрнутой первой версии применяются миграции [002_admission_rules_pipeline.sql](../db/migrations/002_admission_rules_pipeline.sql), [008_strict_admission_adapters.sql](../db/migrations/008_strict_admission_adapters.sql) и [009_university_specific_strict_adapters.sql](../db/migrations/009_university_specific_strict_adapters.sql).
+Для новой БД достаточно применить [schema.sql](../db/schema.sql). Для уже развёрнутой первой версии применяются миграции [002_admission_rules_pipeline.sql](../db/migrations/002_admission_rules_pipeline.sql), [008_strict_admission_adapters.sql](../db/migrations/008_strict_admission_adapters.sql), [009_university_specific_strict_adapters.sql](../db/migrations/009_university_specific_strict_adapters.sql), [011_official_source_discovery.sql](../db/migrations/011_official_source_discovery.sql) и [012_diploma_year.sql](../db/migrations/012_diploma_year.sql). Календарный год диплома хранится отдельно от года приёмной кампании. Витрина считает общий четырёхлетний срок, а затем сверяет профиль, уровень и точное условие в документе вуза для выбранной кампании.
 
 ## Универсальный обходчик документов
 

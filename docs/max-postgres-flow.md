@@ -34,7 +34,9 @@ truth is PostgreSQL.
    bot token, checks `auth_date`, then upserts `app_users.max_user_id`.
 4. The mini app reads subjects, school/student profile, olympiad cards,
    university benefits and tracking status from the API. The API reads
-   PostgreSQL.
+   PostgreSQL. The profile stores the calendar year printed on the diploma
+   separately from the admission campaign, so its statutory validity can be
+   checked without changing the 2026 rules being queried.
 5. A tap on “Отслеживать” writes `tracked_olympiads`; a scheduler creates
    `notification_jobs` from the registration and stage dates.
 6. `backend/worker.py` sends due jobs with the MAX Bot API `POST /messages`.
@@ -105,9 +107,14 @@ the previous verified catalogue and benefits stay published; the failure is
 logged and retried on the next daily run.
 
 For an existing database, apply `db/migrations/002_admission_rules_pipeline.sql`,
-then `db/migrations/008_strict_admission_adapters.sql`, and finally
-`db/migrations/009_university_specific_strict_adapters.sql` once before
-deploying the version that reads verified benefit rules. The
+then `db/migrations/008_strict_admission_adapters.sql`,
+`db/migrations/009_university_specific_strict_adapters.sql`,
+`db/migrations/011_official_source_discovery.sql` and
+`db/migrations/012_diploma_year.sql` once before deploying the version that
+reads verified benefit rules. Migration 012 keeps the calendar year shown on
+the diploma separately from the admission campaign. The general four-year
+validity window is calculated from that year; university-level conditions are
+still checked from the current campaign's official document. The
 initialisation files are intentionally not re-run against an existing Compose
 volume.
 
