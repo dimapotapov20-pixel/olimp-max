@@ -524,12 +524,27 @@
         let programmeSearchTerm='',programmeSearchLocationId='';
         const programmeKind=programme=>programme.catalogue_status==='code_only'?'Направление подготовки':'Образовательная программа';
         const programmeMeta=programme=>programme.catalogue_status==='code_only'?'Код указан в проверенном документе о льготах. Название программы добавим только из официального каталога площадки.':'Название подтверждено источником площадки.';
+        const renderProgrammeResults=(container,programmes)=>{
+          const query=programmeSearchTerm.trim().toLocaleLowerCase('ru');
+          const visible=programmes.filter(programme=>(programme.external_code+' '+programme.programme_name).toLocaleLowerCase('ru').includes(query));
+          container.replaceChildren();
+          const note=document.createElement('p');note.className='programme-directory-note';note.textContent=query?'Найдено: '+visible.length:'Каждая запись закреплена за этой площадкой, а не за всем университетом.';container.appendChild(note);
+          if(!visible.length){const empty=document.createElement('div');empty.className='programme-empty';empty.textContent='По этому запросу направлений и программ нет.';container.appendChild(empty);return}
+          const list=document.createElement('div');list.className='programme-list';
+          visible.forEach(programme=>{const card=document.createElement('article');card.className='programme-card';const tag=document.createElement('span');tag.className='programme-kind '+programme.catalogue_status;tag.textContent=programmeKind(programme);const heading=document.createElement('b');heading.textContent=programme.catalogue_status==='code_only'?'Направление '+programme.external_code:programme.programme_name;const meta=document.createElement('p');meta.textContent=programmeMeta(programme);const footer=document.createElement('div');footer.className='programme-footer';const degree=document.createElement('span');degree.textContent=programme.degree_level==='specialist'?'Специалитет':'Бакалавриат';const rules=document.createElement('span');rules.textContent=programme.verified_benefits_count?programme.verified_benefits_count+' проверенных строк льгот':'Льготы не подтверждены';footer.append(degree,rules);if(programme.catalogue_status==='named_verified'&&programme.source_url){const source=document.createElement('a');source.href=programme.source_url;source.target='_blank';source.rel='noopener';source.textContent='Каталог ↗';footer.appendChild(source)}card.append(tag,heading,meta,footer);list.appendChild(card)});container.appendChild(list);
+        };
         const renderProgrammeDirectory=university=>{
           const directory=$('#programmeDirectory');
           if(!directory)return;
           if(programmeSearchLocationId!==university.id){programmeSearchLocationId=university.id;programmeSearchTerm=''}
           const programmes=(programmesByLocation[university.id]||[]).slice().sort((left,right)=>(left.external_code||left.programme_name).localeCompare(right.external_code||right.programme_name,'ru'));
+          if(directory.dataset.locationId===university.id){
+            const results=directory.querySelector('.programme-results');
+            if(results)renderProgrammeResults(results,programmes);
+            return;
+          }
           directory.replaceChildren();
+          directory.dataset.locationId=university.id;
           const head=document.createElement('div');head.className='programme-directory-head';
           const copy=document.createElement('div');
           const title=document.createElement('h2');title.textContent='Направления и программы площадки';
@@ -538,13 +553,10 @@
           const count=document.createElement('span');count.className='programme-count';count.textContent=programmes.length?programmes.length+' '+(programmes.length===1?'запись':'записей'):'Нет записей';
           head.append(copy,count);directory.appendChild(head);
           if(!programmes.length){const empty=document.createElement('div');empty.className='programme-empty';empty.textContent='Для этой площадки пока нет отдельного проверенного каталога направлений. Мы не копируем программы головного вуза в филиал.';directory.appendChild(empty);return}
-          const search=document.createElement('input');search.type='search';search.className='programme-search';search.placeholder='Поиск по коду или названию';search.setAttribute('aria-label','Поиск направления или программы выбранной площадки');search.value=programmeSearchTerm;search.addEventListener('input',()=>{programmeSearchTerm=search.value;renderProgrammeDirectory(university)});directory.appendChild(search);
-          const query=programmeSearchTerm.trim().toLocaleLowerCase('ru');
-          const visible=programmes.filter(programme=>(programme.external_code+' '+programme.programme_name).toLocaleLowerCase('ru').includes(query));
-          const note=document.createElement('p');note.className='programme-directory-note';note.textContent=query?'Найдено: '+visible.length:'Каждая запись закреплена за этой площадкой, а не за всем университетом.';directory.appendChild(note);
-          if(!visible.length){const empty=document.createElement('div');empty.className='programme-empty';empty.textContent='По этому запросу направлений и программ нет.';directory.appendChild(empty);return}
-          const list=document.createElement('div');list.className='programme-list';
-          visible.forEach(programme=>{const card=document.createElement('article');card.className='programme-card';const tag=document.createElement('span');tag.className='programme-kind '+programme.catalogue_status;tag.textContent=programmeKind(programme);const heading=document.createElement('b');heading.textContent=programme.catalogue_status==='code_only'?'Направление '+programme.external_code:programme.programme_name;const meta=document.createElement('p');meta.textContent=programmeMeta(programme);const footer=document.createElement('div');footer.className='programme-footer';const degree=document.createElement('span');degree.textContent=programme.degree_level==='specialist'?'Специалитет':'Бакалавриат';const rules=document.createElement('span');rules.textContent=programme.verified_benefits_count?programme.verified_benefits_count+' проверенных строк льгот':'Льготы не подтверждены';footer.append(degree,rules);if(programme.catalogue_status==='named_verified'&&programme.source_url){const source=document.createElement('a');source.href=programme.source_url;source.target='_blank';source.rel='noopener';source.textContent='Каталог ↗';footer.appendChild(source)}card.append(tag,heading,meta,footer);list.appendChild(card)});directory.appendChild(list);
+          const search=document.createElement('input');search.type='search';search.className='programme-search';search.placeholder='Поиск по коду или названию';search.setAttribute('aria-label','Поиск направления или программы выбранной площадки');search.value=programmeSearchTerm;directory.appendChild(search);
+          const results=document.createElement('div');results.className='programme-results';directory.appendChild(results);
+          search.addEventListener('input',()=>{programmeSearchTerm=search.value;renderProgrammeResults(results,programmes)});
+          renderProgrammeResults(results,programmes);
         };
         const renderBenefitCheckResult=(panel,university,focus,rows)=>{
           const diploma=panel.querySelector('#benefitDiploma')?.value||'prize_winner';
