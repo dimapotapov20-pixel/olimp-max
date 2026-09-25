@@ -1561,7 +1561,7 @@
       "programme_name": "МАТЕМАТИКА",
       "catalogue_status": "named_verified",
       "degree_level": "bachelor",
-      "verified_benefits_count": 0,
+      "verified_benefits_count": 11,
       "source_url": "https://ba.hse.ru/kolmest",
       "checked_at": "2026-09-25"
     },
@@ -1572,7 +1572,7 @@
       "programme_name": "ПРИКЛАДНАЯ МАТЕМАТИКА И ИНФОРМАТИКА",
       "catalogue_status": "named_verified",
       "degree_level": "bachelor",
-      "verified_benefits_count": 0,
+      "verified_benefits_count": 14,
       "source_url": "https://ba.hse.ru/kolmest",
       "checked_at": "2026-09-25"
     },
@@ -1682,7 +1682,7 @@
       "programme_name": "ПРОГРАММНАЯ ИНЖЕНЕРИЯ",
       "catalogue_status": "named_verified",
       "degree_level": "bachelor",
-      "verified_benefits_count": 0,
+      "verified_benefits_count": 2,
       "source_url": "https://ba.hse.ru/kolmest",
       "checked_at": "2026-09-25"
     },

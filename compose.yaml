@@ -47,6 +47,8 @@ services:
           python parser/load_university_locations.py || echo "Location catalogue refresh failed; keeping the last verified catalogue."
           python parser/configure_university_catalogue_targets.py || echo "Programme catalogue source binding failed; existing programme names stay unchanged."
           python parser/crawl_university_catalogues.py --limit "$${UNIVERSITY_CATALOGUE_CRAWLER_LIMIT:-30}" || echo "Programme catalogue crawl failed; keeping the last verified programme names."
+          python parser/configure_official_source_discovery_targets.py || echo "Official-source discovery binding failed; existing admissions targets stay unchanged."
+          python parser/discover_official_sources.py --limit "$${OFFICIAL_DISCOVERY_LIMIT:-10}" || echo "Official-source discovery failed; existing admissions targets stay unchanged."
           python parser/configure_strict_admission_targets.py || echo "Strict source binding failed; generic source discovery stays available."
           python parser/crawl_admission_rules.py --limit "$${ADMISSION_CRAWLER_LIMIT:-100}" || echo "Admission rules crawl failed; retrying on the next scheduled run."
           python parser/publish_strict_admission_rules.py --limit "$${STRICT_PUBLISHER_LIMIT:-500}" || echo "Strict benefit publication failed; no unverified benefit was exposed."
@@ -61,6 +63,7 @@ services:
       CATALOG_REFRESH_SECONDS: ${CATALOG_REFRESH_SECONDS:-86400}
       ADMISSION_CRAWLER_LIMIT: ${ADMISSION_CRAWLER_LIMIT:-100}
       UNIVERSITY_CATALOGUE_CRAWLER_LIMIT: ${UNIVERSITY_CATALOGUE_CRAWLER_LIMIT:-30}
+      OFFICIAL_DISCOVERY_LIMIT: ${OFFICIAL_DISCOVERY_LIMIT:-10}
       # A single official appendix can contain thousands of exact BVI rows.
       # Resolve them in one daily run; unresolved rows remain blocked, never
       # published by the larger batch size itself.
