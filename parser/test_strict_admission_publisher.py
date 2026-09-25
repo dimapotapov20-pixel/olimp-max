@@ -24,6 +24,14 @@ class StrictAdmissionPublisherTest(unittest.TestCase):
         ]
         self.assertIsNone(programme_match("Прикладная математика", programmes))
 
+    def test_direction_scope_wins_over_catalogue_programme_names(self) -> None:
+        programmes = [
+            Programme(1, "09.03.04", "Направление 09.03.04", "code_only"),
+            Programme(2, "09.03.04", "Разработка программных систем", "named_verified"),
+            Programme(3, "09.03.04", "Инженерия программного обеспечения", "named_verified"),
+        ]
+        self.assertEqual(1, programme_match("09.03.04", programmes).id)
+
     def test_requires_every_identity_field_for_auto_publication(self) -> None:
         candidate = {
             "confidence": 100,

@@ -43,11 +43,29 @@ class Programme:
     id: int
     external_code: str | None
     name: str
+    catalogue_status: str = "named_verified"
 
 
 def programme_match(selector: str, programmes: list[Programme]) -> Programme | None:
-    """Resolve one programme only; duplicates stay unresolved."""
+    """Resolve one programme only; duplicates stay unresolved.
+
+    A catalogue can name several educational programmes inside the same
+    direction.  An admission appendix that names only that direction must
+    resolve to the separate ``code_only`` scope, not arbitrarily to one of
+    the catalogue labels.
+    """
     expected = normalise(selector)
+    selector_code = direction_code(selector)
+    if selector_code:
+        code_scopes = [
+            programme
+            for programme in programmes
+            if programme.external_code == selector_code and programme.catalogue_status == "code_only"
+        ]
+        if len(code_scopes) == 1:
+            return code_scopes[0]
+        if len(code_scopes) > 1:
+            return None
     matches = [
         programme
         for programme in programmes
@@ -77,6 +95,7 @@ def programmes_for_location(connection: "psycopg.Connection", location_id: int) 
         cursor.execute(
             """
             SELECT id, external_code, name
+                   , catalogue_status
             FROM university_programs
             WHERE university_location_id = %s AND is_active
             """,
@@ -128,7 +147,10 @@ def create_code_scope(
     them and no automatic record is created.
     """
     code = direction_code(candidate["raw_programme_name"])
-    if code is None or any(programme.external_code == code for programme in programmes):
+    if code is None or any(
+        programme.external_code == code and programme.catalogue_status == "code_only"
+        for programme in programmes
+    ):
         return None
     with connection.cursor() as cursor:
         cursor.execute(
@@ -150,7 +172,7 @@ def create_code_scope(
             ) VALUES (%s, %s, %s, %s, 'code_only', %s)
             ON CONFLICT (university_id, university_location_id, external_code, name)
             DO UPDATE SET is_active = TRUE, degree_level = EXCLUDED.degree_level
-            RETURNING id, external_code, name
+            RETURNING id, external_code, name, catalogue_status
             """,
             (campaign["university_id"], candidate["university_location_id"], code, label, degree_level_for_direction(code)),
         )
@@ -183,7 +205,7 @@ def create_named_scope(
             ) VALUES (%s, %s, NULL, %s, 'named_verified')
             ON CONFLICT (university_id, university_location_id, external_code, name)
             DO UPDATE SET is_active = TRUE, catalogue_status = 'named_verified'
-            RETURNING id, external_code, name
+            RETURNING id, external_code, name, catalogue_status
             """,
             (campaign["university_id"], candidate["university_location_id"], name),
         )

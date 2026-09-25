@@ -136,6 +136,45 @@ CREATE TABLE admission_campaigns (
   UNIQUE (university_id, campaign_year)
 );
 
+-- Official educational-programme catalogues are polled independently from
+-- admission-benefit appendices.  A catalogue target is scoped to exactly one
+-- campus or branch, so a programme found for a head office can never leak
+-- into a branch just because both belong to the same university.
+CREATE TABLE university_catalogue_targets (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  university_location_id BIGINT NOT NULL REFERENCES university_locations(id) ON DELETE CASCADE,
+  source_id BIGINT NOT NULL REFERENCES sources(id),
+  url TEXT NOT NULL,
+  document_kind TEXT NOT NULL CHECK (document_kind IN ('html', 'pdf', 'xlsx', 'other')),
+  adapter_code TEXT NOT NULL,
+  adapter_config JSONB NOT NULL DEFAULT '{}'::jsonb,
+  poll_interval_hours SMALLINT NOT NULL DEFAULT 24 CHECK (poll_interval_hours BETWEEN 1 AND 720),
+  next_check_at TIMESTAMPTZ,
+  last_checked_at TIMESTAMPTZ,
+  last_successful_document_id BIGINT REFERENCES source_documents(id),
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (university_location_id, url)
+);
+
+-- Catalogue parses are kept separately from benefit parses: a catalogue can
+-- update a programme name without creating or changing an admission benefit.
+CREATE TABLE university_catalogue_parse_runs (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  university_catalogue_target_id BIGINT NOT NULL REFERENCES university_catalogue_targets(id) ON DELETE CASCADE,
+  source_document_id BIGINT NOT NULL REFERENCES source_documents(id),
+  adapter_code TEXT NOT NULL,
+  adapter_version TEXT NOT NULL,
+  started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  finished_at TIMESTAMPTZ,
+  status TEXT NOT NULL CHECK (status IN ('running', 'succeeded', 'failed')),
+  records_seen INTEGER NOT NULL DEFAULT 0 CHECK (records_seen >= 0),
+  programmes_upserted INTEGER NOT NULL DEFAULT 0 CHECK (programmes_upserted >= 0),
+  error_message TEXT,
+  UNIQUE (university_catalogue_target_id, source_document_id, adapter_version)
+);
+
 -- A configured official page or document to check for one admission campaign.
 -- Different universities publish rules in different places, so the adapter is
 -- deliberately selected per target rather than inferred from arbitrary URLs.
@@ -184,6 +223,10 @@ CREATE TABLE university_programs (
   catalogue_status TEXT NOT NULL DEFAULT 'named_verified'
     CHECK (catalogue_status IN ('named_verified', 'code_only')),
   degree_level TEXT NOT NULL DEFAULT 'bachelor' CHECK (degree_level IN ('bachelor', 'specialist')),
+  catalogue_source_target_id BIGINT REFERENCES university_catalogue_targets(id) ON DELETE SET NULL,
+  catalogue_parse_run_id BIGINT REFERENCES university_catalogue_parse_runs(id) ON DELETE SET NULL,
+  catalogue_source_url TEXT,
+  catalogue_checked_at TIMESTAMPTZ,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   UNIQUE NULLS NOT DISTINCT (university_id, university_location_id, external_code, name)
 );

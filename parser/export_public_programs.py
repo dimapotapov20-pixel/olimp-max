@@ -101,6 +101,7 @@ def fetch_programmes(connection: "psycopg.Connection", campaign_year: int) -> li
                 WHERE rule.is_active AND rule.verification_status = 'verified'
               ) AS verified_benefits_count,
               COALESCE(
+                program.catalogue_source_url,
                 min(rule.source_url) FILTER (
                   WHERE rule.is_active AND rule.verification_status = 'verified'
                 ),
@@ -109,6 +110,7 @@ def fetch_programmes(connection: "psycopg.Connection", campaign_year: int) -> li
               ) AS source_url,
               to_char(
                 COALESCE(
+                  program.catalogue_checked_at,
                   max(rule.checked_at) FILTER (
                     WHERE rule.is_active AND rule.verification_status = 'verified'
                   ),
