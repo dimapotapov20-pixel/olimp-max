@@ -72,6 +72,30 @@ class KeywordCandidatesTest(unittest.TestCase):
             identities,
         )
 
+    def test_auto_confirms_only_a_table_with_all_explicit_admission_fields(self) -> None:
+        markdown = """
+        | Программа | Олимпиада | Профиль олимпиады | Победители | Призёры | БВИ | Подтверждающий предмет | Минимальный балл |
+        | --- | --- | --- | --- | --- | --- | --- | --- |
+        | 09.03.04 | Олимпиада школьников «Высшая проба» | информатика | предоставляется | предоставляется | предоставляется | информатика | 75 |
+        """
+        candidates = find_candidates(markdown, "f" * 64)
+        self.assertEqual(2, len(candidates))
+        self.assertTrue(all(candidate.confidence == 100 for candidate in candidates))
+        self.assertEqual({"winner", "prize_winner"}, {candidate.suggested_diploma_status for candidate in candidates})
+        self.assertTrue(all(candidate.suggested_benefit_kind == "bvi" for candidate in candidates))
+        self.assertTrue(all(candidate.raw_programme_name == "09.03.04" for candidate in candidates))
+        self.assertTrue(all(candidate.raw_payload["kind"] == "automatic_explicit_table_row" for candidate in candidates))
+
+    def test_does_not_auto_confirm_a_table_without_diploma_status(self) -> None:
+        markdown = """
+        | Программа | Олимпиада | Профиль олимпиады | Льгота |
+        | --- | --- | --- | --- |
+        | 09.03.04 | Олимпиада школьников «Высшая проба» | информатика | БВИ |
+        """
+        candidates = find_candidates(markdown, "g" * 64)
+        self.assertEqual(1, len(candidates))
+        self.assertEqual(72, candidates[0].confidence)
+
     def test_html_reader_retains_a_benefit_table(self) -> None:
         html = """
         <h2>Особые права олимпиадников</h2>

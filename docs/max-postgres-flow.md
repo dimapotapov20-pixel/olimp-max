@@ -100,9 +100,11 @@ resolved rows.
 Its default pause is `CATALOG_REFRESH_SECONDS=86400`; each target also keeps
 its own `poll_interval_hours` (24 hours by default). This prevents repeated
 downloads while preserving a predictable daily schedule. It stores raw
-snapshots in the `olimp-admission-snapshots` volume. Generic sources write
-review candidates only; strict source rows are exposed only after the exact
-programme, campus and РСОШ-profile links resolve. If a source is unavailable,
+snapshots in the `olimp-admission-snapshots` volume. Generic sources normally
+write review candidates only; a fully explicit table row (programme,
+olympiad, profile, diploma status and benefit in separate cells) is allowed
+through the automatic path, then still has to resolve its exact programme,
+campus and РСОШ-profile links. If a source is unavailable,
 the previous verified catalogue and benefits stay published; the failure is
 logged and retried on the next daily run.
 

@@ -77,6 +77,11 @@ def programme_match(selector: str, programmes: list[Programme]) -> Programme | N
 
 def complete(candidate: dict[str, Any]) -> str | None:
     """Return an explainable block reason, or ``None`` for a complete record."""
+    adapter_code = candidate.get("adapter_code")
+    payload = candidate.get("raw_payload") or {}
+    automatic_table = isinstance(payload, dict) and payload.get("kind") == "automatic_explicit_table_row"
+    if adapter_code and adapter_code not in supported_codes() and not automatic_table:
+        return "generic_source_without_explicit_table_proof"
     if candidate.get("confidence") != 100:
         return "strict_confidence_required"
     if not candidate.get("university_location_id"):
@@ -241,7 +246,9 @@ def publish(
 ) -> int:
     """Publish one resolved rule and return its canonical benefit-rule id."""
     confirmation_id = subject_id(connection, candidate.get("confirmation_subject_code"))
-    actor = f"strict-adapter:{candidate['adapter_code']}"
+    raw_payload = candidate.get("raw_payload") or {}
+    prefix = "automatic-table" if raw_payload.get("kind") == "automatic_explicit_table_row" else "strict-adapter"
+    actor = f"{prefix}:{candidate['adapter_code']}"
     with connection.cursor() as cursor:
         cursor.execute(
             """
@@ -355,7 +362,8 @@ def candidates(connection: "psycopg.Connection", limit: int) -> list[dict[str, A
                    candidate.raw_olympiad_name, candidate.raw_profile_name,
                    candidate.suggested_diploma_status, candidate.suggested_benefit_kind,
                    confirmation.code AS confirmation_subject_code,
-                   candidate.suggested_confirmation_min_score, candidate.confidence,
+                   candidate.suggested_confirmation_min_score, candidate.suggested_olympiad_level,
+                   candidate.confidence,
                    candidate.source_locator, candidate.source_excerpt, candidate.raw_payload,
                    parse_run.id AS parse_run_id, parse_run.adapter_code,
                    target.university_location_id, document.url AS source_url,
@@ -369,7 +377,14 @@ def candidates(connection: "psycopg.Connection", limit: int) -> list[dict[str, A
             LEFT JOIN subjects confirmation ON confirmation.id = candidate.suggested_confirmation_subject_id
             WHERE candidate.review_status = 'pending'
               AND candidate.automatic_status IN ('pending_resolution', 'blocked')
-              AND parse_run.adapter_code = ANY(%s)
+              AND (
+                parse_run.adapter_code = ANY(%s)
+                -- Generic extraction can join the automatic path only when
+                -- the crawler proved that each identity field came from its
+                -- own explicit table cell. Its confidence is set to 100 only
+                -- for that narrow representation.
+                OR candidate.confidence = 100
+              )
             -- New exact rows must not be starved by an older exception queue.
             ORDER BY CASE candidate.automatic_status WHEN 'pending_resolution' THEN 0 ELSE 1 END,
                      candidate.created_at, candidate.id
@@ -426,6 +441,13 @@ def run(connection: "psycopg.Connection", limit: int) -> tuple[int, int]:
         match = match_candidate_text(f"{candidate['raw_olympiad_name']} | {candidate['raw_profile_name']}", profiles)
         if match.status != "resolved" or match.profile is None:
             block(connection, candidate["id"], f"rsosh_{match.reason}")
+            blocked += 1
+            continue
+        if (
+            candidate.get("suggested_olympiad_level") is not None
+            and match.profile.level != candidate["suggested_olympiad_level"]
+        ):
+            block(connection, candidate["id"], "rsosh_level_mismatch")
             blocked += 1
             continue
         publish(connection, candidate, programme, match.profile)

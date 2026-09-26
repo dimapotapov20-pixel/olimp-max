@@ -564,24 +564,31 @@
         const programmeWord=count=>count%10===1&&count%100!==11?'программа':count%10>=2&&count%10<=4&&(count%100<12||count%100>14)?'программы':'программ';
         const sortRussian=(left,right)=>left.localeCompare(right,'ru');
         const sourceDate=rules=>{const dates=rules.map(rule=>rule.checked_at).filter(Boolean).sort();return dates.length?dates[dates.length-1]:null};
+        const overviewTitle=record=>{
+          const firstQuoted=String(record.title||'').match(/«([^»]+)»/);
+          return record.title&&record.title.length>88&&firstQuoted?firstQuoted[1]:record.title;
+        };
         window.openOlympiadBenefitSummary=record=>{
           if(!record||record.audience!=='school')return;
           const dialog=$('#olympiadBenefitDialog'),content=$('#olympiadBenefitContent');
           const relevant=benefitSnapshotRules.filter(rule=>isRuleForFocus(rule,record));
           content.replaceChildren();
-          const kicker=document.createElement('p');kicker.className='benefit-overview-kicker';kicker.textContent='Льготы при поступлении · кампания 2026';
-          const title=document.createElement('h2');title.textContent=record.title;
-          const meta=document.createElement('p');meta.className='benefit-overview-meta';meta.textContent=(record.profile||record.subject)+' · '+levelFor(record)+'. Здесь показаны только построчно проверенные связи «олимпиада → площадка → программа → льгота». Не выводим льготу только из уровня олимпиады.';
-          const guide=document.createElement('div');guide.className='benefit-overview-guide';guide.innerHTML='<b>Что означают метки:</b> БВИ — поступление без вступительных испытаний; 100 баллов — зачёт профильного вступительного испытания как 100 баллов. Итог зависит от статуса диплома, его срока и выбранной программы.';
-          content.append(kicker,title,meta,guide);
+          const kicker=document.createElement('p');kicker.className='benefit-overview-kicker';kicker.textContent='Льготы при поступлении · 2026';
+          const title=document.createElement('h2');title.textContent=overviewTitle(record);
+          const meta=document.createElement('p');meta.className='benefit-overview-meta';meta.textContent=(record.profile||record.subject)+' · '+levelFor(record)+'. Покажем только условия, которые уже подтверждены официальными правилами вуза.';
+          content.append(kicker,title,meta);
           if(!relevant.length){
             const empty=document.createElement('div');empty.className='benefit-overview-empty';
-            const heading=document.createElement('b');heading.textContent='Проверенных связей пока нет';
-            const copy=document.createElement('span');copy.textContent='Это не означает, что льготы нет: для этой олимпиады ещё не загружена построчная сверка правил приёма 2026. Сервис не будет обещать БВИ или 100 баллов без документа.';
-            empty.append(heading,copy);content.appendChild(empty);
-            if(record.source_url){const link=document.createElement('a');link.href=record.source_url;link.target='_blank';link.rel='noopener';link.textContent='Открыть страницу олимпиады ↗';link.style.cssText='display:inline-block;margin-top:10px;color:#5549c4;font-size:12px;font-weight:850;text-decoration:none';content.appendChild(link)}
+            const heading=document.createElement('b');heading.textContent='Пока не можем подтвердить БВИ или 100 баллов';
+            const copy=document.createElement('span');copy.textContent='Для этой олимпиады ещё нет проверенной записи в правилах приёма вузов на 2026 год. Это не значит, что льготы нет — просто сервис не будет гадать и обещать её без официального документа.';
+            const next=document.createElement('p');next.textContent='Что можно сделать: открыть условия олимпиады или вернуться к подборке и посмотреть другую олимпиаду.';
+            next.style.cssText='margin:12px 0 0;color:#5f5a6b;font-size:11px;font-weight:750;line-height:1.45';
+            empty.append(heading,copy,next);content.appendChild(empty);
+            if(record.source_url){const link=document.createElement('a');link.href=record.source_url;link.target='_blank';link.rel='noopener';link.textContent='Открыть условия олимпиады ↗';link.style.cssText='display:inline-block;margin-top:10px;color:#5549c4;font-size:12px;font-weight:850;text-decoration:none';content.appendChild(link)}
             if(!dialog.open)dialog.showModal();return;
           }
+          const guide=document.createElement('div');guide.className='benefit-overview-guide';guide.innerHTML='<b>Что означают метки:</b> БВИ — поступление без вступительных испытаний; 100 баллов — зачёт профильного вступительного испытания как 100 баллов. Итог зависит от статуса диплома, его срока и выбранной программы.';
+          content.appendChild(guide);
           const byKind=new Map();
           relevant.forEach(rule=>{const rows=byKind.get(rule.benefit_kind)||[];rows.push(rule);byKind.set(rule.benefit_kind,rows)});
           const totals=document.createElement('div');totals.className='benefit-total-grid';

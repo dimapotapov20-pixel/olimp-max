@@ -27,9 +27,27 @@ from typing import Any
 from urllib.parse import urlparse
 
 try:
-    from parser.strict_admission_adapters import StrictRule, supported_codes as strict_adapter_codes, strict_rules
+    from parser.strict_admission_adapters import (
+        StrictRule,
+        benefit_from_cell as strict_benefit_from_cell,
+        confirmation_score as strict_confirmation_score,
+        explicit_statuses as strict_explicit_statuses,
+        programme_selectors as strict_programme_selectors,
+        subject_code as strict_subject_code,
+        supported_codes as strict_adapter_codes,
+        strict_rules,
+    )
 except ModuleNotFoundError:  # Allows `python parser/crawl_admission_rules.py`.
-    from strict_admission_adapters import StrictRule, supported_codes as strict_adapter_codes, strict_rules
+    from strict_admission_adapters import (
+        StrictRule,
+        benefit_from_cell as strict_benefit_from_cell,
+        confirmation_score as strict_confirmation_score,
+        explicit_statuses as strict_explicit_statuses,
+        programme_selectors as strict_programme_selectors,
+        subject_code as strict_subject_code,
+        supported_codes as strict_adapter_codes,
+        strict_rules,
+    )
 
 try:
     import requests
@@ -398,7 +416,7 @@ def table_identities(payload: dict[str, Any]) -> list[dict[str, str]]:
     header_line = next((item for item in headers if isinstance(item, str) and "|" in item), None)
     if header_line is None:
         return []
-    header_cells = [normalized(cell) for cell in markdown_cells(header_line)]
+    header_cells = [normalized(cell).replace("ё", "е") for cell in markdown_cells(header_line)]
     row_cells = markdown_cells(row)
     profile_index = next(
         (index for index, cell in enumerate(header_cells) if "профиль олимпиады" in cell),
@@ -482,6 +500,126 @@ def table_blocks(lines: list[str]) -> list[tuple[int, str, dict[str, Any]]]:
     return output
 
 
+def explicit_table_rules(
+    payload: dict[str, Any], *, source_locator: str, source_excerpt: str
+) -> list[StrictRule]:
+    """Promote a generic table row only when every admission fact is explicit.
+
+    This is the automatic-confirmation bridge for a newly connected official
+    source. It intentionally understands only ordinary columnar tables. A
+    row must name a programme, olympiad, profile, diploma holder and benefit
+    in separate cells. Narrative text, broad scopes such as «all programmes»
+    and merged PDF fragments continue through the review path.
+    """
+    if payload.get("kind") != "table_row":
+        return []
+    headers = payload.get("headers")
+    row = payload.get("row")
+    if not isinstance(headers, list) or not isinstance(row, str):
+        return []
+    header_line = next((item for item in headers if isinstance(item, str) and "|" in item), None)
+    if header_line is None:
+        return []
+    header_cells = [normalized(cell).replace("ё", "е") for cell in markdown_cells(header_line)]
+    cells = markdown_cells(row)
+    if len(cells) < len(header_cells):
+        return []
+
+    def first_index(*fragments: str, exclude: tuple[str, ...] = ()) -> int | None:
+        return next(
+            (
+                index
+                for index, header in enumerate(header_cells)
+                if all(fragment in header for fragment in fragments)
+                and not any(fragment in header for fragment in exclude)
+            ),
+            None,
+        )
+
+    programme_index = next(
+        (
+            index
+            for index, header in enumerate(header_cells)
+            if any(fragment in header for fragment in ("образовательн программ", "программа", "направлен", "специальност"))
+        ),
+        None,
+    )
+    olympiad_index = first_index("олимпиад", exclude=("профил", "уров", "предмет"))
+    profile_index = first_index("профил")
+    if None in (programme_index, olympiad_index, profile_index):
+        return []
+    programme = cells[programme_index]
+    olympiad = cells[olympiad_index]
+    profile = cells[profile_index]
+    selectors = strict_programme_selectors(programme)
+    if not selectors or not olympiad or not profile:
+        return []
+
+    statuses: list[str] = []
+    for index, header in enumerate(header_cells):
+        value = cells[index]
+        if any(fragment in header for fragment in ("диплом", "статус", "кому предостав")):
+            statuses.extend(strict_explicit_statuses(value))
+            continue
+        if "победител" in header and normalized(value) in {"да", "есть", "предоставляется", "+"}:
+            statuses.append("winner")
+        if "призер" in header and normalized(value) in {"да", "есть", "предоставляется", "+"}:
+            statuses.append("prize_winner")
+    statuses = list(dict.fromkeys(statuses))
+    if not statuses:
+        return []
+
+    subject_index = next(
+        (
+            index
+            for index, header in enumerate(header_cells)
+            if "подтвержда" in header or ("общеобразовательн" in header and "предмет" in header)
+        ),
+        None,
+    )
+    score_index = next(
+        (
+            index
+            for index, header in enumerate(header_cells)
+            if "минимальн" in header or "количество баллов" in header
+        ),
+        None,
+    )
+    subject = strict_subject_code(cells[subject_index]) if subject_index is not None else None
+    score = strict_confirmation_score(cells[score_index]) if score_index is not None else None
+
+    rules: list[StrictRule] = []
+    for index, header in enumerate(header_cells):
+        benefit = strict_benefit_from_cell(
+            header,
+            cells[index],
+            generic=("льгот" in header or "особое право" in header),
+        )
+        if benefit is None:
+            continue
+        for selector in selectors:
+            for status in statuses:
+                rules.append(
+                    StrictRule(
+                        programme_selector=selector,
+                        olympiad_title=olympiad,
+                        profile_title=profile,
+                        diploma_status=status,
+                        benefit_kind=benefit,
+                        confirmation_subject_code=subject,
+                        confirmation_min_score=score,
+                        source_locator=source_locator,
+                        source_excerpt=source_excerpt,
+                        raw_payload={
+                            **payload,
+                            "kind": "automatic_explicit_table_row",
+                            "automatic_fields": ["programme", "olympiad", "profile", "diploma", "benefit"],
+                        },
+                    )
+                )
+    return rules
+
+
 def paragraph_blocks(lines: list[str]) -> list[tuple[int, str, dict[str, Any]]]:
     output: list[tuple[int, str, dict[str, Any]]] = []
     for index, line in enumerate(lines):
@@ -499,6 +637,21 @@ def find_candidates(markdown: str, document_hash: str) -> list[KeywordCandidate]
     result: list[KeywordCandidate] = []
     for line_number, excerpt, payload in [*table_blocks(lines), *paragraph_blocks(lines)]:
         excerpt = excerpt[:4_000]
+        automatic_rules = explicit_table_rules(
+            payload,
+            source_locator=f"markdown:line:{line_number}",
+            source_excerpt=excerpt,
+        )
+        if automatic_rules:
+            for rule in automatic_rules:
+                candidate = strict_rule_candidate(rule, document_hash)
+                if candidate.candidate_key not in seen:
+                    seen.add(candidate.candidate_key)
+                    result.append(candidate)
+            # The structured, complete records replace a less precise review
+            # candidate for this same row. There is no reason to create a
+            # duplicate task for a rule the automatic publisher can prove.
+            continue
         identities = table_identities(payload)
         for identity in identities or [None]:
             candidate_payload = {**payload, **({"identity": identity} if identity else {})}
@@ -733,7 +886,14 @@ def finish_run(
             (target.id, run_id),
         )
         for candidate in candidates:
-            automatic_status = "pending_resolution" if target.adapter_code in strict_adapter_codes() else "not_applicable"
+            # A known strict adapter, or an ordinary table row that contains
+            # all five admission facts in separate cells, can proceed to the
+            # exact publisher. Everything else remains a review candidate.
+            automatic_status = (
+                "pending_resolution"
+                if target.adapter_code in strict_adapter_codes() or candidate.confidence == 100
+                else "not_applicable"
+            )
             cursor.execute(
                 """
                 INSERT INTO admission_rule_candidates (

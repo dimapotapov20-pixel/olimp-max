@@ -46,6 +46,22 @@ class StrictAdmissionPublisherTest(unittest.TestCase):
         candidate["raw_profile_name"] = None
         self.assertEqual("missing_explicit_identity", complete(candidate))
 
+    def test_rejects_a_generic_candidate_without_explicit_table_proof(self) -> None:
+        candidate = {
+            "adapter_code": "requests-bs4-keyword-v1",
+            "raw_payload": {"kind": "table_row"},
+            "confidence": 100,
+            "university_location_id": 4,
+            "raw_programme_name": "01.03.02",
+            "raw_olympiad_name": "Высшая проба",
+            "raw_profile_name": "математика",
+            "suggested_diploma_status": "winner",
+            "suggested_benefit_kind": "bvi",
+        }
+        self.assertEqual("generic_source_without_explicit_table_proof", complete(candidate))
+        candidate["raw_payload"] = {"kind": "automatic_explicit_table_row"}
+        self.assertIsNone(complete(candidate))
+
     def test_accepts_only_a_full_official_direction_code_for_code_scope(self) -> None:
         self.assertEqual("38.03.01", direction_code("38.03.01"))
         self.assertIsNone(direction_code("38.03"))
